@@ -6,12 +6,14 @@
 	<meta name="viewport" content="width=792, user-scalable=no">
 	<meta http-equiv="x-ua-compatible" content="ie=edge">
 	<!-- Icon -->
-	<link href="pics/favicon.png" rel="icon" type="image/x-icon" />
-	<!-- MathJax -->
+	<link href="pics/twR_logo.png" rel="icon" type="image/x-icon" />
 	<!-- CSS Stle -->
 	<link rel="stylesheet" href="lib/shower/themes/styles/screen-16x10.css">
-	<link rel="stylesheet" href="lib/highlight/styles/github.min.css" type="text/css"/>
+	<link rel="stylesheet" href="lib/highlight/styles/github.css" type="text/css"/>
 	<style>
+		.caption p {
+			font-size: 0.6em;
+		}
 		.slide.mid h2 {
 			font-size: 110px;
 			font-family: Roboto Light;
@@ -21,13 +23,16 @@
 			line-height: 1.25em;
 			text-shadow: 1px 1px 3px black;
 		}
+		.citation pre {
+			text-align: left;
+		}
 	</style>
 </head>
 <body class="shower list">
 	<!-- Header in overview -->
 	<header class="caption">
 		<h1>Genomics in R</h1>
-		<p style="line-height: 32px; padding-top:15px;"><a href="http://liang2.tw">Liang Bo Wang (亮亮)</a>, 2016-02-25</p>
+		<p><a href="http://liang2.tw">Liang Bo Wang (亮亮)</a>, 2016-05-16</p>
 	</header>
 
 	<!-- Cover Slide -->
@@ -92,16 +97,223 @@
 		</style>
 	</section>
 
+	<!-- Proposed Outline -->
+	<!--
+	- A very quick guide to genome, sequencing, genomic annotation and genome browser
+	- Bioconductor introduction
+	- Annotation and genome reference (OrgDb, TxDb, OrganismDb, BSgenome)
+	- Operations on genome (GenomicRanges)
+	- Experiment data storage (ExpressionSets) (optional, if we have time)
+	-->
 
-	<!-- django-q tutorial -->
+	<!-- Reading List
+	Bioconductor cheat sheet
+	https://github.com/mikelove/bioc-refcard/blob/master/README.Rmd
+
+	Annotation
+	https://www.bioconductor.org/help/workflows/annotation/Annotation_Resources/
+	https://www.bioconductor.org/help/course-materials/2015/Uruguay2015/V4-Annotation.html
+	https://www.bioconductor.org/help/course-materials/2015/BioC2015/Annotation_Resources.html
+	http://genomicsclass.github.io/book/pages/bioc1_annoCheat.html
+	http://genomicsclass.github.io/book/pages/bioc1_annoOverview.html
+
+	Genome Ranges
+	http://genomicsclass.github.io/book/pages/bioc1_igranges.html
+	http://genomicsclass.github.io/book/pages/bioc1_grangeOps.html
+	https://www.bioconductor.org/packages/release/bioc/vignettes/GenomicRanges/inst/doc/GenomicRangesIntroduction.pdf
+	http://genomicsclass.github.io/book/pages/iranges_granges.html
+	http://genomicsclass.github.io/book/pages/operateGRanges.html
+	https://www.bioconductor.org/help/course-materials/2015/Uruguay2015/V3-GenomicRanges.html
+	http://bioconductor.org/packages/release/bioc/vignettes/GenomicRanges/inst/doc/GRanges_and_GRangesList_slides.pdf
+
+	Sequence Analysis
+	https://www.bioconductor.org/help/course-materials/2015/EMBO/A01_RBiocForSequenceAnalysis.html
+	-->
+
+
+	<!-- Section: Bioconductor -->
 	<section class="slide mid no-number">
-		<h2>Some Section</h2>
+		<h2>Bioconductor</h2>
 		<img src="pics/mid.jpg" class="cover w" alt="">
 	</section>
 
+	<section id="bioc-setup" class="slide">
+	<h2>R environment setup</h2>
+		<pre class="language-r">
+<code>source("https://bioconductor.org/biocLite.R")
+biocLite()   # install fundamental packages
+biocLite(c(  # packages required for today's demo
+    "Homo.sapiens",
+    "BSgenome.Hsapiens.UCSC.hg19",
+))
+install.packages(c("devtools", "stringr", "plyr"))</code>
+		</pre>
+	</section>
+
+
+	<!-- Section: Annotation Resources -->
+	<section id="sec-annotation-resources" class="slide mid no-number">
+		<h2>Annotation Resources</h2>
+		<img src="pics/mid.jpg" class="cover w" alt="">
+	</section>
+
+	<section class="slide">
+		<h2>Annotation Sources in Bioconductor</h2>
+		<table class="striped">
+		<thead>
+			<tr>
+				<th>Object Type</th>
+				<th>Example Package Name</th>
+			</tr>
+		</thead>
+		<tbody>
+		<tr>
+			<th role="row">OrgDb</th>
+			<td>
+				<a href="http://bioconductor.org/packages/org.Hs.eg.db/">
+					org.Hs.eg.db
+				</a>
+			</td>
+		</tr>
+		<tr>
+			<th role="row">TxDb</th>
+			<td>
+				<a href="http://bioconductor.org/packages/TxDb.Hsapiens.UCSC.hg19.knownGene/">
+					TxDb.Hsapiens.UCSC.hg19.knownGene
+				</a>
+			</td>
+		</tr>
+		<tr>
+			<th role="row">BSgenome</th>
+			<td>
+				<a href="http://bioconductor.org/packages/BSgenome.Hsapiens.UCSC.hg19/">
+					BSgenome.Hsapiens.UCSC.hg19
+				</a>
+			</td>
+		</tr>
+		<tr>
+			<th role="row">OrganismDb</th>
+			<td>
+				<a href="http://bioconductor.org/packages/Homo.sapiens/">Homo.sapiens</a>
+			</td>
+		</tr>
+		<tr>
+			<th role="row">AnnotationHub</th>
+			<td>
+				<a href="http://bioconductor.org/packages/AnnotationHub/">AnnotationHub</a>
+			</td>
+		</tr>
+		</tbody>
+		</table>
+		<div class="citation">
+			<p>Ref: Bioconductor workflow &ndash; <a href="https://www.bioconductor.org/help/workflows/annotation/Annotation_Resources/">Annotation Resources</a>.</p>
+		</div>
+		<p>Bioconductor contains hundreds of these <mark>AnnotationData</mark> packages.</p>
+	</section>
+
+	<section id="ph525x-annotation-vis" class="slide">
+		<h2>What can these sources provide?</h2>
+		<p>We can use these annotation sources to act as a simple genome browser. Here we use Bioconductor to show <mark>gene GAPDH in human genome hg19</mark>.</p>
+		<div class="citation">
+		<pre class="language-r">
+<code>devtools::install_github("genomicsclass/ph525x")
+biocLite("Gviz")  # Gviz for plotting genomic data
+library(ph525x)  # Provides handy helper functions
+
+modPlot("GAPDH", collapse=FALSE, useGeneSym=FALSE)</code>
+		</pre>
+<p>Ref: <a href="http://genomicsclass.github.io/book/pages/annoPhen.html">Annotating phenotypes and molecular function</a> from PH525x series</p>
+		</div>
+	</section>
+
+	<section id="ph525-annotation-vis-result" class="slide no-number">
+		<img class="cover w" src="pics/modPlot_GAPDH.png" alt="">
+	</section>
+
+	<section id="ph525-annotation-vis-interp" class="slide">
+		<h2>From the plot, Bioconductor can</h2>
+		<ul>
+			<li>Know the gene's <strong>genomic location</strong> (e.g. chromosome, region, and strand)</li>
+			<li>Know multiple transcript forms and their <strong>UCSC knownGene IDs</strong></li>
+			<li>Know the <strong>transcript structure</strong> (e.g. exons, introns, 3' UTR, and 5' UTR)</li>
+		</ul>
+		<p>Behind the scene, <code>modPlot(...)</code> did a lot of queries. Let's find out how to extract this information ourselves using the annotation related API.</p>
+	</section>
+
+	<section class="slide">
+		<h2>Query orgDb for general gene-based information and ID mappings</h2>
+		<pre class="language-r">
+<code>select(
+    human,
+    keys = c("MAPK1", "MAPK3", "MAPK6"),
+    keytype = "SYMBOL",
+    columns = c("ENTREZID", "ENSEMBL", "GENENAME")
+)</code>
+		</pre>
+	</section>
+
+	<section class="slide">
+		<pre class="language-r">
+<code>#'select()' returned 1:1 mapping between keys and columns
+  SYMBOL ENTREZID         ENSEMBL
+1  MAPK1     5594 ENSG00000100030
+2  MAPK3     5595 ENSG00000102882
+3  MAPK6     5597 ENSG00000069956
+                            GENENAME
+1 mitogen-activated protein kinase 1
+2 mitogen-activated protein kinase 3
+3 mitogen-activated protein kinase 6</code>
+		</pre>
+	</section>
+
+<section class="slide tighter no-number">
+	<pre class="language-sql">
+<code>-- Get SQLite3 database filepath by `dbfile(org.Hs.eg.db)`
+sqlite> SELECT symbol, gene_id AS entrez_id, gene_name
+   ...> FROM genes JOIN (
+   ...>     SELECT * FROM gene_info
+   ...>     WHERE symbol IN ("MAPK1", "MAPK3", "MAPK6")
+   ...> ) AS symbol_info
+   ...> ON genes._id = symbol_info._id;
+symbol	entrez_id	gene_name
+MAPK1	5594		mitogen-activated protein kinase 1
+MAPK3	5595		mitogen-activated protein kinase 3
+MAPK6	5597		mitogen-activated protein kinase 6</code>
+	</pre>
+</section>
+
+
+	<!-- Human OrganismDb example -->
+	<section class="slide tighter">
+		<pre class="language-r">
+	<code>> Homo.sapiens
+OrganismDb Object:
+# Includes GODb Object:  GO.db
+# With data about:  Gene Ontology
+# Includes OrgDb Object:  org.Hs.eg.db
+# Gene data about:  Homo sapiens
+# Taxonomy Id:  9606
+# Includes TxDb Object:  TxDb.Hsapiens.UCSC.hg19.knownGene
+# Transcriptome data about:  Homo sapiens
+# Based on genome:  hg19
+# The <mark>OrgDb gene id ENTREZID</mark> is mapped to
+# the <mark>TxDb gene id GENEID</mark> .</code>
+		</pre>
+	</section>
+
+
+	<!-- Genomic Ranges -->
+
+	<!-- Using BioMart -->
+
+	<!-- Lift Over example: hg38 to hg19 -->
+	<!--
+	http://genomicsclass.github.io/book/pages/bioc1_liftOver.html
+	-->
+
 	<!-- End Slide -->
 	<section id='end' class='slide no-number'>
-		<h2>Q&As</h2>
+		<h2>?</h2>
 		<img src="pics/end.jpg" class="cover w" alt="">
 		<style>
 			#end h2 {
@@ -116,6 +328,34 @@
 		</style>
 	</section>
 
+	<!-- Section: About me and my future school WUSTL -->
+	<section id="about-me" class="slide no-number twocol l60">
+		<div class="left">
+			<h2>About Me</h2>
+			<ul>
+				<li>亮亮 or Liang<sup>2</sup></li>
+				<li>Master student in Bioinformatics, National Taiwan University (NTU BEBI)</li>
+				<li>Former intern at Microsoft Research Asia (MSRA) and Pinkoi</li>
+				<li>A PhD student in <a href="http://dbbs.wustl.edu/divprograms/compbio/Pages/default.aspx" target="_blank">WUSTL (WashU)</a> by Fall</li>
+				<li>Happy to talk about Bioinfo, anime, and <a href="https://www.ptt.cc/bbs/studyabroad/M.1462818195.A.882.html">my PhD application</a></li>
+			</ul>
+		</div>
+		<div class="right">
+			<div class="citation">
+			<img class="fill w" src="pics/me.jpg" alt="">
+			<p>(Yap, I know I haven't changed my protrait photo since <a href="https://blog.liang2.tw/2014-pyR-stat/" target="_blank">2014</a> and actually the photo I put in <a href="https://blog.liang2.tw/ggplot2-tutorial/201307_slides/#/1">2013</a> is newer)</p>
+			</div>
+		</div>
+	</section>
+
+	<section class="slide" id="problem-solved">
+		<!--
+		<video class="place" loop autoplay>
+		  <source src="https://i.imgur.com/kuT9BZR.webm" type="video/webm">
+		  Your browser doesn't support HTML5 video tag.
+		</video>
+		-->
+	</section>
 
 	<!-- END OF SLIDE CONTENT -->
 	<p class="badge">
