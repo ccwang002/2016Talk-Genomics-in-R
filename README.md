@@ -1,3 +1,10 @@
+## Theme customization
+
+```scss
+// _default.scss
+colors: rgb(0, 138, 165);
+```
+
 ## License
 
 The slides is powered by
