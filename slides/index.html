@@ -26,13 +26,31 @@
 		.citation pre {
 			text-align: left;
 		}
+		pre.small {
+			font-size: 0.5em;
+		}
+		pre.small code {
+			line-height: 1.5em;
+		}
+
+		.sidenote {
+			border: 2px dashed #9e9e9e;
+			position: absolute;
+			padding: 1em;
+			line-height: 1.5em;
+			color: #9e9e9e;
+		}
+		.sidenote p {
+			margin-bottom: 0px;
+		}
+
 	</style>
 </head>
 <body class="shower list">
 	<!-- Header in overview -->
 	<header class="caption">
 		<h1>Genomics in R</h1>
-		<p><a href="http://liang2.tw">Liang Bo Wang (亮亮)</a>, 2016-05-16</p>
+		<p><a href="http://liang2.tw">Liang-Bo Wang (亮亮)</a>, 2016-05-16</p>
 	</header>
 
 	<!-- Cover Slide -->
@@ -211,6 +229,22 @@ install.packages(c("devtools", "stringr", "plyr"))</code>
 		<p>Bioconductor contains hundreds of these <mark>AnnotationData</mark> packages.</p>
 	</section>
 
+	<section class="slide">
+		<h2>AnnotationData packages</h2>
+		<ul>
+			<li>Annotations <strong>standardize a way</strong> to compare their results with others</li>
+			<li>Mappings exists to help <strong>convert between different standards</strong></li>
+				<ul>
+					<li>Find a gene's protein product</li>
+					<li>Obtain a transcript all exons' DNA sequences</li>
+					<li>Convert gene symbol to its Entrez Gene ID, and to its Ensebml gene ID</li>
+					<li>Update results mapped on a older reference to the latest one</li>
+				</ul>
+			<li>Those data are <strong>stored as databases</strong> (technically, SQLite3 database files)</li>
+			<li>They share <strong>similar APIs</strong></li>
+		</ul>
+	</section>
+
 	<section id="ph525x-annotation-vis" class="slide">
 		<h2>What can these sources provide?</h2>
 		<p>We can use these annotation sources to act as a simple genome browser. Here we use Bioconductor to show <mark>gene GAPDH in human genome hg19</mark>.</p>
@@ -238,32 +272,138 @@ modPlot("GAPDH", collapse=FALSE, useGeneSym=FALSE)</code>
 			<li>Know the <strong>transcript structure</strong> (e.g. exons, introns, 3' UTR, and 5' UTR)</li>
 		</ul>
 		<p>Behind the scene, <code>modPlot(...)</code> did a lot of queries. Let's find out how to extract this information ourselves using the annotation related API.</p>
+		<p class="note">Plot is made by Gviz. Though we are not able to introduce it today.</p>
+	</section>
+
+	<!-- OrgDb -->
+	<section class="slide">
+		<h2 class="shout">orgDb</h2>
 	</section>
 
 	<section class="slide">
-		<h2>Query orgDb for general gene-based information and ID mappings</h2>
+		<h2>OrgDb objects</h2>
+		<ul>
+			<li>OrgDb objects contains gene-based information</li>
+			<li>Useful to convert between different IDs, e.g. symbols, gene IDs, and names</li>
+			<li>We give more introduction about how to query OrgDb objects, but the usage can be applied to TxDb, BSgenome, OrganismDb, and many</li>
+			<li>Common usages:</li>
+			<ul>
+				<li><code>columns()</code>, <code>keytypes()</code>, <code>keys()</code></li>
+				<li><code>select()</code>, <code>mapIds()</code></li>
+			</ul>
+		</ul>
+	</section>
+
+	<section id="orgdb-meta" class="slide tighter">
+		<pre class="language-r small">
+	<code>> human
+OrgDb object:
+| DBSCHEMAVERSION: 2.1
+| Db type: OrgDb
+| Supporting package: AnnotationDbi
+| DBSCHEMA: HUMAN_DB
+| ORGANISM: Homo sapiens
+| SPECIES: Human
+| EGSOURCEDATE: 2016-Mar14
+| EGSOURCENAME: Entrez Gene
+| EGSOURCEURL: ftp://ftp.ncbi.nlm.nih.gov/gene/DATA
+| <mark>CENTRALID: EG</mark>
+| TAXID: 9606
+| GOSOURCENAME: Gene Ontology
+| GOSOURCEURL: ftp://ftp.geneontology.org/pub/go/godatabase/archive/latest-lite/
+| GOSOURCEDATE: 20160305
+| GOEGSOURCEDATE: 2016-Mar14
+| GOEGSOURCENAME: Entrez Gene
+| GOEGSOURCEURL: ftp://ftp.ncbi.nlm.nih.gov/gene/DATA
+| KEGGSOURCENAME: KEGG GENOME
+| KEGGSOURCEURL: ftp://ftp.genome.jp/pub/kegg/genomes
+| KEGGSOURCEDATE: 2011-Mar15
+| GPSOURCENAME: UCSC Genome Bioinformatics (Homo sapiens)
+| GPSOURCEURL: ftp://hgdownload.cse.ucsc.edu/goldenPath/hg19
+| GPSOURCEDATE: 2010-Mar22
+| ENSOURCEDATE: 2016-Mar9
+| ENSOURCENAME: Ensembl
+| ENSOURCEURL: ftp://ftp.ensembl.org/pub/current_fasta
+| UPSOURCENAME: Uniprot
+| UPSOURCEURL: http://www.UniProt.org/
+| UPSOURCEDATE: Wed Mar 23 15:50:09 2016</code>
+		</pre>
+		<div class="sidenote">
+			<p>Many metadata about each annotation's original source and last update date can be found here.</p>
+		</div>
+		<style>
+			#orgdb-meta .sidenote {
+				width: 15em;
+				right: 100px;
+				top: 52px;
+			}
+		</style>
+	</section>
+
+	<section class="slide">
+		<h2>Human's OrgDb</h2>
+		<pre class="language-r">
+<code>library(org.Hs.eg.db)
+human <- org.Hs.eg.db
+columns(human)  # shows all available columns
+# "ACCNUM"   "ALIAS"  "ENSEMBL"  "ENSEMBLPROT" "ENSEMBLTRANS"
+# "ENTREZID" "ENZYME" "EVIDENCE" "EVIDENCEALL" "GENENAME"
+# "GO" "GOALL" "IPI"  "MAP" "OMIM" "ONTOLOGY"  "ONTOLOGYALL" ...
+</code>
+		</pre>
+		<p>org.Hs.eg.db's "eg" means data come from NCBI Entrez Gene. Info about each column can be found by <code>help("ENSEMBL")</code></p>
+	</section>
+
+	<section class="slide">
+		<h2>OrgDb usage (cont'd)</h2>
+		</pre>
+		<ul>
+			<li>Among all columns, some columns contain distinct values, such as gene ID (ENTREZID)</li>
+			<li>Called <strong>keytype</strong>. Keytypes can identify a unique record, which can be further mapped to differnt annotations.</li>
+			<li>Find all keytypes by <code>keytypes(orgDb)</code>.</li>
+		</ul>
+	</section>
+
+	<section class="slide">
+		<p><code>keys()</code> return values of the given column.</p>
+		<pre class="language-r">
+<code>head(keys(human, "SYMBOL"))  # [1] "A1BG" "A2M" "A2MP1" ...
+
+# Passed a pattern to filter the returned symbols
+keys(human, keytype="SYMBOL", pattern="MAPK")
+# [1] "MAPK14" "MAPK1" "MAPK3" "MAPK4" "MAPK6" "MAPK7" ...
+# Accept regex as well
+keys(human, keytype="SYMBOL", pattern="^MAPK[[:digit:]]{2}$")
+# [1] "MAPK14" "MAPK11" "MAPK10" "MAPK13" "MAPK12" "MAPK15"</code>
+		</pre>
+	</section>
+
+
+	<section class="slide">
+		<h2>Use keytype to query on other columns</h2>
+		<p><code>select()</code> connects different columns. Say, what are the Entrez Gene IDs and their full name for MAPK gene family?</p>
 		<pre class="language-r">
 <code>select(
     human,
     keys = c("MAPK1", "MAPK3", "MAPK6"),
     keytype = "SYMBOL",
-    columns = c("ENTREZID", "ENSEMBL", "GENENAME")
+    columns = c("ENTREZID", "GENENAME")
 )</code>
 		</pre>
 	</section>
 
 	<section class="slide">
+		<h2>Query result</h2>
 		<pre class="language-r">
-<code>#'select()' returned 1:1 mapping between keys and columns
-  SYMBOL ENTREZID         ENSEMBL
-1  MAPK1     5594 ENSG00000100030
-2  MAPK3     5595 ENSG00000102882
-3  MAPK6     5597 ENSG00000069956
-                            GENENAME
-1 mitogen-activated protein kinase 1
-2 mitogen-activated protein kinase 3
-3 mitogen-activated protein kinase 6</code>
+<code># select(...) from the last page
+# 'select()' returned <mark>1:1 mapping</mark> between keys and columns
+  SYMBOL ENTREZID                           GENENAME
+1  MAPK1     5594 mitogen-activated protein kinase 1
+2  MAPK3     5595 mitogen-activated protein kinase 3
+3  MAPK6     5597 mitogen-activated protein kinase 6</code>
 		</pre>
+
+		<p>How does these functions interact with the underlying database?</p>
 	</section>
 
 <section class="slide tighter no-number">
@@ -282,6 +422,93 @@ MAPK6	5597		mitogen-activated protein kinase 6</code>
 	</pre>
 </section>
 
+	<section class="slide twocol">
+		<h2>When query has 1+ result mappings</h2>
+		<div class="left">
+			<p>For example, <strong>find all RefSeq IDs</strong> for these MAPK-family genes.</p>
+			<pre class="language-r">
+<code>select(
+    human,
+    keys = MAPKS,
+    keytype = "SYMBOL",
+    columns = c("REFSEQ")
+)
+</code>
+			</pre>
+		</div>
+		<div class="right">
+			<pre class="language-r">
+<code># 'select()' returned 1:many ...
+   SYMBOL       REFSEQ
+1   MAPK1    NM_002745
+2   MAPK1    NM_138957
+3   MAPK1    NP_002736
+4   MAPK1    NP_620407
+5   MAPK3 NM_001040056
+6   MAPK3 NM_001109891
+# ...</code>
+			</pre>
+		</div>
+	</section>
+
+	<section class="slide tighter twocol">
+		<h2>Group multiple mapping</h2>
+		<p>Use <code>mapIds(multiVals="list")</code>, which returns a list-like structure grouped by having the same key (here is SYMBOL).</p>
+		<div class="left">
+			<pre class="language-r">
+<code>refseq_ids <- mapIds(
+    human,
+    keys = MAPKS,
+    keytype = "SYMBOL",
+    column = "REFSEQ",
+    multiVals = "list"
+)</code>
+			</pre>
+		</div>
+		<div class="right">
+			<pre class="language-r">
+<code>$MAPK1
+[1] "NM_002745" "NM_138957" ...
+$MAPK3
+[1] "NM_001040056" "NM_001109891"
+$MAPK6
+[1] "NM_002748" "NP_002739" ...
+# ...</code>
+			</pre>
+		</div>
+	</section>
+
+	<section class="slide tighter">
+		<pre class="language-r">
+<code>mapk_refseq_ids$MAPK1  # operate exactly as a list
+# [1] "NM_002745" "NM_138957" "NP_002736" "NP_620407"
+
+# select only transcript IDs (starting with "NM_")
+lapply(
+    mapk_refseq_ids,
+	function(ids) grep("^NM_", ids, value = TRUE)
+)
+# $MAPK1
+# [1] "NM_002745" "NM_138957"
+# $MAPK3
+# [1] "NM_001040056" "NM_001109891" "NM_002746" ... </code>
+		</pre>
+	</section>
+
+	<!-- txDb -->
+	<section class="slide">
+		<h2 class="shout">txDb</h2>
+	</section>
+
+	<!-- BSgenome -->
+	<section class="slide">
+		<h2 class="shout">BSgenome</h2>
+	</section>
+
+	<!-- OrganismDb -->
+	<section class="slide">
+		<h2 class="shout">OrganismDb</h2>
+	</section>
 
 	<!-- Human OrganismDb example -->
 	<section class="slide tighter">
@@ -305,11 +532,23 @@ OrganismDb Object:
 	<!-- Genomic Ranges -->
 
 	<!-- Using BioMart -->
+	<!--
+	Refseq mRNA to Ensembl transcript ID
+	https://www.biostars.org/p/106470/#106534
+	https://www.biostars.org/p/102462/#102480
+	-->
 
 	<!-- Lift Over example: hg38 to hg19 -->
 	<!--
 	http://genomicsclass.github.io/book/pages/bioc1_liftOver.html
 	-->
+
+	<section class="slide">
+		<h2>Topics I don't have time to say today</h2>
+		<ul class="double">
+			<li>AnnotationHub</li>
+		</ul>
+	</section>
 
 	<!-- End Slide -->
 	<section id='end' class='slide no-number'>
