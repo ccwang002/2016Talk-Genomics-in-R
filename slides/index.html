@@ -1051,8 +1051,9 @@ getSeq(Hsapiens, chrom_names[1:2])
 # [3]  98487 GCCCCTCCCTCCGCCCGCCC...GATACAGATCTTAAATTTGTCAG
 
 # Join all exons (UTRs included) of uc002zvn.3
-toString(getSeq(Hsapiens, exby[["uc002zvn.3"]]))
-# [1] "GCCCCTCCCTCCGCCC...CAAGTCTTTTTAA"</code>
+unlist(getSeq(Hsapiens, exby[["uc002zvn.3"]]))
+#   5915-letter "DNAString" instance
+# seq: GCCCCTCCCTCCGCCC...CAAGTCTTTTTAA</code>
 		</pre>
 	</section>
 
