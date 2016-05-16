@@ -13,6 +13,6 @@ gulp.task('default', [], () => {
 		}
 	});
 
-	gulp.watch('index.html').on('change', sync.reload);
+	gulp.watch('./slides/index.html').on('change', sync.reload);
 });
 
