@@ -1,9 +1,17 @@
+# Genomics in R
+2016-05-16 at MLDM Monday / Taiwan R User Group
+
+- [Meetup event link](http://www.meetup.com/Taiwan-R/events/230688476/)
+- Screencast on [Youtube](https://youtu.be/ZR4GYQ487j8)
+
+
 ## Theme customization
 
 ```scss
 // _default.scss
 colors: rgb(0, 138, 165);
 ```
+
 
 ## License
 
