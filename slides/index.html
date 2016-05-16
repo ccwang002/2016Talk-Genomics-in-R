@@ -155,11 +155,66 @@
 	https://www.bioconductor.org/help/course-materials/2015/EMBO/A01_RBiocForSequenceAnalysis.html
 	-->
 
+	<!-- Section: Genomics Intro -->
+	<section class="slide">
+		<h2>What is <mark>genome</mark>?</h2>
+		<ul>
+			<li>Genome are the source code of life</li>
+			<li>It changes, creates branches along thousands of generations</li>
+			<li>But we don't understand life's source code. We can only observe its binary executives (e.g. you, me, and cell lines) and plug some debugger in it</li>
+			<li>After a hunderd year of research, we somehow get major rules of how it compiles. Also, we decoded many organisms' source code (e.g. Human Genome Project and ENCODE)</li>
+		</ul>
+		<img class="cover place l" src="pics/source_code_of_life.png" alt="">
+	</section>
+
+	<section class="slide">
+		<h2>Genome Browser</h2>
+		<ul>
+			<li>After years of brute-force debugging, we got many information about the genome</li>
+			<li>For example, where a gene locates; what its protein product looks like</li>
+			<li>Most of them can be annotated or anchored along the genomic coordinates</li>
+			<li>People view these annotation via genome browser</li>
+			<li>Popular choices of genome browser: <a href="https://genome.ucsc.edu/" target="_blank">UCSC</a> and <a href="http://www.ensembl.org/index.html" target="_blank">Ensembl</a></li>
+		</ul>
+	</section>
+
+	<section class="slide">
+		<img class="cover w" src="pics/UCSC_Genome_Browser.png" alt="">
+	</section>
+
+	<section class="slide">
+		<img class="cover h" src="pics/Ensembl_Genome_Browser.png" alt="">
+	</section>
+
+	<section class="slide">
+		<h2><mark>Reproducible</mark> research</h2>
+		<ul>
+			<li>Reproducible results from the very raw data to analysis outcome</li>
+			<li>Important issue in recent studies</li>
+			<li>A good way to make all the results reproducible is by programming and automation</li>
+		</ul>
+	</section>
 
 	<!-- Section: Bioconductor -->
 	<section class="slide mid no-number">
 		<h2>Bioconductor</h2>
 		<img src="pics/mid.jpg" class="cover w" alt="">
+	</section>
+
+	<section class="slide">
+		<h2>Bioconductor</h2>
+		<figure>
+			<blockquote>
+<p>Bioconductor provides tools for the analysis and comprehension of high-throughput genomic data.</p>
+			</blockquote>
+			<figcaption>&mdash; <a href="https://www.bioconductor.org/">Bioconductor Official Site</a></figcaption>
+		</figure>
+		<ul>
+			<li>CRAN-like repository for Bioinformatics</li>
+			<li>Two release per year</li>
+			<li>Install and update itself by <br><code>source("https://bioconductor.org/biocLite.R")</code></li>
+			<li>Install Bioconductor package by <code>biocLite("PKGNAME")</code></li>
+		</ul>
 	</section>
 
 	<section id="bioc-setup" class="slide">
