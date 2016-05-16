@@ -632,13 +632,13 @@ columns(txdb)
 	<section class="slide">
 		<p><code>transcriptsBy()</code> returns a <strong>GRangesList</strong>, whose keys are gene IDs (Entrez). Select MAPK1's transcripts and verify with what we found in OrgDb.</p>
 		<pre class="language-r medium">
-<code>txby[[5594]]
+<code>txby["5594"]
 # GRanges object with 3 ranges and 2 metadata columns:
 #       seqnames               ranges strand |     tx_id     tx_name
 #          &lt;Rle&gt;            &lt;IRanges&gt;  &lt;Rle&gt; | &lt;integer&gt; &lt;character&gt;
-#   [1]    chr15 [41474931, 41482568]      - |     55602  uc001znj.3
-#   [2]    chr15 [41474931, 41522895]      - |     55603  uc001znk.3
-#   [3]    chr15 [41474931, 41522895]      - |     55604  uc010ucv.2
+#   [1]    chr22 [22113947, 22221970]      - |     74608  uc002zvn.3
+#   [2]    chr22 [22123319, 22221970]      - |     74609  uc002zvo.3
+#   [3]    chr22 [22123484, 22221970]      - |     74610  uc010gtk.1
 #   -------
 #   seqinfo: 93 sequences (1 circular) from hg19 genome</code>
 		</pre>
@@ -647,7 +647,7 @@ columns(txdb)
 
 	<section class="slide tighter">
 		<pre class="language-r medium">
-<code>exonsBy(txdb, by = "tx", use.names = TRUE)
+<code>exby <- exonsBy(txdb, by = "tx", use.names = TRUE); exby
 # GRangesList object of length 82960:
 # $uc001aaa.3
 # GRanges object with 3 ranges and 3 metadata columns:
@@ -666,6 +666,28 @@ columns(txdb)
 #
 # ...
 # <82957 more elements>
+# -------
+# seqinfo: 93 sequences (1 circular) from hg19 genome</code>
+		</pre>
+	</section>
+
+	<section class="slide tighter">
+		<p><code>exonsBy()</code> returns a <strong>GRangesList</strong>, whose keys are transcript IDs (UCSC KnownGene). Pick one MAPK1 transcript and verify with <a href="#ph525-annotation-vis-mapk1">modPlot()</a>'s result.</p>
+		<pre class="language-r medium">
+<code>exby["uc002zvn.3"]
+# GRangesList object of length 1:
+# $uc002zvn.3
+# GRanges object with 9 ranges and 3 metadata columns:
+#       seqnames               ranges strand |   exon_id   exon_name exon_rank
+#          &lt;Rle&gt;            &lt;IRanges&gt;  &lt;Rle&gt; | &lt;integer&gt; &lt;character&gt; &lt;integer&gt;
+#   [1]    chr22 [22221612, 22221970]      - |    264662        &lt;NA&gt;         1
+#   [2]    chr22 [22161953, 22162135]      - |    264661        &lt;NA&gt;         2
+#   [3]    chr22 [22160139, 22160328]      - |    264660        &lt;NA&gt;         3
+#   ...
+#   [7]    chr22 [22127162, 22127271]      - |    264656        &lt;NA&gt;         7
+#   [8]    chr22 [22123484, 22123609]      - |    264655        &lt;NA&gt;         8
+#   [9]    chr22 [22113947, 22118529]      - |    264653        &lt;NA&gt;         9
+#
 # -------
 # seqinfo: 93 sequences (1 circular) from hg19 genome</code>
 		</pre>
@@ -718,6 +740,18 @@ seqlevels(txdb)
 </code>
 		</pre>
 	</section>
+
+	<section id="txDb-recap" class="slide">
+		<h2>txDb recap</h2>
+		<ul>
+			<li>Inherits <strong>methods of OrgDb</strong> (e.g. <code>columns()</code> and <code>select()</code>)</li>
+			<li>Specialized functions that return <strong>regions of genomic coordinates</strong> as a GRanges object (e.g. <code>transcripts()</code> and <code>genes()</code>)</li>
+			<li>Specialized functions that return <strong>groups of genomic regions</strong> as a GRangesList object (e.g. <code>transcriptsBy()</code> and <code>exonsBy()</code>)</li>
+			<li><strong>Chromosome information</strong> is stored as a Seqinfo object via <code>seqinfo()</code></li>
+		</ul>
+	</section>
+
+	<!-- GenomicRanges -->
 
 	<!-- OrganismDb -->
 	<section class="slide">
