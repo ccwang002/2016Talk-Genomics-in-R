@@ -645,6 +645,32 @@ columns(txdb)
 		<p>Why we know the gene IDs are Entrez Gene IDs? (try printing txdb itself)</p>
 	</section>
 
+	<section class="slide tighter">
+		<pre class="language-r medium">
+<code>exonsBy(txdb, by = "tx", use.names = TRUE)
+# GRangesList object of length 82960:
+# $uc001aaa.3
+# GRanges object with 3 ranges and 3 metadata columns:
+#       seqnames         ranges strand |   exon_id   exon_name exon_rank
+#          &lt;Rle&gt;      &lt;IRanges&gt;  &lt;Rle&gt; | &lt;integer&gt; &lt;character&gt; &lt;integer&gt;
+#   [1]     chr1 [11874, 12227]      + |         1        &lt;NA&gt;         1
+#   [2]     chr1 [12613, 12721]      + |         3        &lt;NA&gt;         2
+#   [3]     chr1 [13221, 14409]      + |         5        &lt;NA&gt;         3
+#
+# $uc010nxq.1
+# GRanges object with 3 ranges and 3 metadata columns:
+#       seqnames         ranges strand | exon_id exon_name exon_rank
+#   [1]     chr1 [11874, 12227]      + |       1      &lt;NA&gt;         1
+#   [2]     chr1 [12595, 12721]      + |       2      &lt;NA&gt;         2
+#   [3]     chr1 [13403, 14409]      + |       6      &lt;NA&gt;         3
+#
+# ...
+# <82957 more elements>
+# -------
+# seqinfo: 93 sequences (1 circular) from hg19 genome</code>
+		</pre>
+	</section>
+
 	<section class="slide" id="seqinfo">
 		<h2>Extract chromosome information</h2>
 		<p>Extract the chromosome information by <code>seqinfo()</code>, returning a <strong>Seqinfo</strong> object. Works on all GRanges objects.</p>
