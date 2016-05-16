@@ -29,8 +29,8 @@ head(seqlevels(txdb))
 txby <- transcriptsBy(txdb, by="gene")
 txby
 # Select MAPK1 by its Entrez ID
-txby["5594"]  # verify the tx_name with what you found in OrgDB
+txby[["5594"]]  # verify the tx_name with what you found in OrgDB
 
 exby <- exonsBy(txdb, by="tx", use.names = TRUE)
 exby
-exby["uc002zvn.3"]
+exby[["uc002zvn.3"]]

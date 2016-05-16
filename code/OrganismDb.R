@@ -7,3 +7,4 @@ mapk_info <- select(
     keytype = "SYMBOL",
     columns = c("TXNAME", "TXCHROM", "TXSTRAND")
 )
+txs <- transcripts(human, columns=c("TXNAME", "SYMBOL"))

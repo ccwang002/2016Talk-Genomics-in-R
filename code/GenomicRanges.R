@@ -4,7 +4,7 @@ gr <- GRanges(
     ranges = IRanges(1:10, end = 7:16, names = head(letters, 10)),
     strand = Rle(strand(c("-", "+", "*", "+", "-")), c(1, 2, 2, 3, 2)),
     score = 1:10,
-    GC = seq(1, 0, length=10)
+    GC = seq(1, 0.1, length=10)
 )
 gr
 sp <- split(gr, rep(1:2, each=5))
@@ -13,22 +13,25 @@ gr[2:3]
 gr[IRanges(start=c(2,7), end=c(3,9))]  # equiv. to gr[c(2:3, 7:9)]
 
 gr1 <- GRanges(
-    seqnames = "chr2", ranges = IRanges(3, 6),
-    strand = "+", score = 5L, GC = 0.45
+    seqnames = "chr2",
+    ranges = IRanges(3, 6),
+    strand = "+",
+    score = 5L, GC = 0.45
 )
 gr2 <- GRanges(
     seqnames = c("chr1", "chr1"),
     ranges = IRanges(c(7, 13), width = 3),
-    strand = c("+", "-"), score = 3:4, GC = c(0.3, 0.5)
+    strand = c("+", "-"),
+    score = 3:4, GC = c(0.3, 0.5)
 )
 grl <- GRangesList("txA" = gr1, "txB" = gr2)
 grl
 
 
 findOverlaps(grl, gr, type="within")
+# add a match
 mygr <- GRanges(Rle("chr1", 1), IRanges(5, 16), "*", score=10, GC=0.55)
 names(mygr) <- "k"
-
 findOverlaps(grl, c(gr, mygr), type="within")
 
 

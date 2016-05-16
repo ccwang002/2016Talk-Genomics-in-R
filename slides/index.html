@@ -286,7 +286,8 @@ modPlot("GAPDH", collapse=FALSE, useGeneSym=FALSE)</code>
 		<p class="note">Plot is made by Gviz. Though we are not able to introduce it today.</p>
 	</section>
 
-	<!-- OrgDb -->
+
+	<!-- Section: OrgDb -->
 	<section class="slide">
 		<h2 class="shout">orgDb</h2>
 	</section>
@@ -504,7 +505,8 @@ lapply(  # select only transcript IDs (starting with "NM_")
 		</pre>
 	</section>
 
-	<!-- txDb -->
+
+	<!-- Section: txDb -->
 	<section class="slide">
 		<h2 class="shout">TxDb</h2>
 	</section>
@@ -515,7 +517,7 @@ lapply(  # select only transcript IDs (starting with "NM_")
 			<li>TxDb objects contains transcriptome, that is, <strong>representation of transcripts as genomic regions</strong></li>
 			<li>Support previous described columns(), keys(), select(), mapIds() functions</li>
 			<li>Need special R data structure to <strong>represent set of genomic locations</strong> (e.g. exons, introns, and UTRs) of a trancript. So TxDb objects have <strong>specialized methods</strong></li>
-			<li>For human hg19, Bioconuctor ships TxDb.Hsapiens.UCSC.hg19.knownGene, a TxDb object based on <strong>UCSC KnownGene IDs</strong></li>
+			<li>For human hg19, Bioconductor ships TxDb.Hsapiens.UCSC.hg19.knownGene, a TxDb object based on <strong>UCSC KnownGene IDs</strong></li>
 		</ul>
 	</section>
 
@@ -632,7 +634,7 @@ columns(txdb)
 	<section class="slide">
 		<p><code>transcriptsBy()</code> returns a <strong>GRangesList</strong>, whose keys are gene IDs (Entrez). Select MAPK1's transcripts and verify with what we found in OrgDb.</p>
 		<pre class="language-r medium">
-<code>txby["5594"]
+<code>txby[["5594"]]
 # GRanges object with 3 ranges and 2 metadata columns:
 #       seqnames               ranges strand |     tx_id     tx_name
 #          &lt;Rle&gt;            &lt;IRanges&gt;  &lt;Rle&gt; | &lt;integer&gt; &lt;character&gt;
@@ -674,7 +676,7 @@ columns(txdb)
 	<section class="slide tighter">
 		<p><code>exonsBy()</code> returns a <strong>GRangesList</strong>, whose keys are transcript IDs (UCSC KnownGene). Pick one MAPK1 transcript and verify with <a href="#ph525-annotation-vis-mapk1">modPlot()</a>'s result.</p>
 		<pre class="language-r medium">
-<code>exby["uc002zvn.3"]
+<code>exby[["uc002zvn.3"]]
 # GRangesList object of length 1:
 # $uc002zvn.3
 # GRanges object with 9 ranges and 3 metadata columns:
@@ -751,7 +753,8 @@ seqlevels(txdb)
 		</ul>
 	</section>
 
-	<!-- OrganismDb -->
+
+	<!-- Section: OrganismDb -->
 	<section class="slide">
 		<h2 class="shout">OrganismDb</h2>
 	</section>
@@ -825,7 +828,7 @@ OrganismDb Object:
 		<p class="next">But how can we get the contents columns like TXNAME and SYMBOL?!</p>
 	</section>
 
-	<!-- GenomicRanges -->
+	<!-- Section: GenomicRanges -->
 	<section class="slide">
 		<h2 class="shout">GenomicRanges</h2>
 	</section>
@@ -899,19 +902,177 @@ OrganismDb Object:
 		</div>
 	</section>
 
-	<!-- findOverlaps
-	http://genomicsclass.github.io/book/pages/bioc1_igranges.html
-	data.table foverlap phttp://stackoverflow.com/a/27609994
-	-->
+	<section class="slide tighter">
+		<h2>Back to the OrganismDb transcripts</h2>
+		<pre class="language-r medium">
+<code>txs <- transcripts(human, columns=c("TXNAME", "SYMBOL"))
+mcols(txs)  # act as data.frame
+# DataFrame with 82960 rows and 2 columns
+#                TXNAME          SYMBOL
+#       &lt;CharacterList&gt; &lt;CharacterList&gt;
+# 1          uc001aaa.3         DDX11L1
+# 2          uc010nxq.1         DDX11L1
+# 3          uc010nxr.1         DDX11L1
+# 4          uc001aal.1           OR4F5
+# 5          uc001aaq.2              NA
+# ...               ...             ...
+# 82956      uc011mgu.1              NA
+# 82957      uc011mgv.2              NA
+# 82958      uc011mgw.1              NA
+# 82959      uc022brq.1              NA
+# 82960      uc022brr.1              NA
+mcols(txs)$SYMBOL  # take SYMBOL column out</code>
+		</pre>
+	</section>
 
-	<!-- BSgenome -->
+	<section class="slide tighter">
+	<h2>GRanges from scratch</h2>
+<pre class="language-r medium">
+<code>gr1 <- GRanges(
+    seqnames = "chr2", ranges = IRanges(3, 6), strand = "+",
+    score = 5L, GC = 0.45
+); gr1
+# GRanges object with 1 range and 2 metadata columns:
+#       seqnames    ranges strand |     score        GC
+#          &lt;Rle&gt; &lt;IRanges&gt;  &lt;Rle&gt; | &lt;integer&gt; &lt;numeric&gt;
+#   [1]     chr2    [3, 6]      + |         5      0.45
+#   -------
+#   seqinfo: 1 sequence from an unspecified genome; no seqlengths
+
+gr2 <- GRanges(
+	seqnames = c("chr1", "chr1"),
+	ranges = IRanges(c(7, 13), width = 3), strand = c("+", "-"),
+    score = 3:4, GC = c(0.3, 0.5)
+)</code>
+</pre>
+	</section>
+
+	<section class="slide tighter">
+	<h2>GRangesList from scratch</h2>
+	<pre class="language-r medium">
+<code>grl <- GRangesList("txA" = gr1, "txB" = gr2); grl
+# GRangesList object of length 2:
+# $txA
+# GRanges object with 1 range and 2 metadata columns:
+#       seqnames    ranges strand |     score        GC
+#          &lt;Rle&gt; &lt;IRanges&gt;  &lt;Rle&gt; | &lt;integer&gt; &lt;numeric&gt;
+#   [1]     chr2    [3, 6]      + |         5      0.45
+#
+# $txB
+# GRanges object with 2 ranges and 2 metadata columns:
+#       seqnames   ranges strand | score  GC
+#   [1]     chr1 [ 7,  9]      + |     3 0.3
+#   [2]     chr1 [13, 15]      - |     4 0.5
+#
+# -------
+# seqinfo: 2 sequences from an unspecified genome; no seqlengths</code>
+	</pre>
+	</section>
+
+
+	<!-- Section: BSgenome -->
 	<section class="slide">
 		<h2 class="shout">BSgenome</h2>
 	</section>
 
+	<section class="slide tighter">
+		<h2>BSgenome objects</h2>
+		<ul>
+			<li>Store sequence data</li>
+			<li>For human ref hg19, Bioconductor ships BSgenome.Hsapiens.UCSC.hg19</li>
+			<li>Shown as Hsapiens</li>
+		</ul>
+		<pre class="language-r medium"><code>library(BSgenome.Hsapiens.UCSC.hg19)
+Hsapiens
+# Human genome:
+# # organism: Homo sapiens (Human)
+# # provider: UCSC
+# # provider version: hg19
+# # release date: Feb. 2009
+# # release name: Genome Reference Consortium GRCh37
+# # 93 sequences:
+# ...</code></pre>
+	</section>
+
+	<section class="slide">
+		<pre class="language-r">
+<code>chrom_names <- seqnames(Hsapiens)
+head(chrom_names)
+# [1] "chr1" "chr2" "chr3" "chr4" "chr5" "chr6"
+getSeq(Hsapiens, chrom_names[1:2])
+#   A DNAStringSet instance of length 2
+#         width seq
+# [1] 249250621 NNNNNNNNNNN...NNNNNNNNNNN
+# [2] 243199373 NNNNNNNNNNN...NNNNNNNNNNN
+</code>
+		</pre>
+	</section>
 
 
-	<!-- Genomic Ranges -->
+	<section class="slide tighter">
+		<p><code>getSeq()</code> accepts GRanges as well.</p>
+		<pre class="language-r">
+<code>getSeq(Hsapiens, txby[["5594"]])
+#   A DNAStringSet instance of length 3
+#      width seq
+# [1] 108024 GCCCCTCCCTCCGCCCGCCC...CAGTAAATAGCAAGTCTTTTTAA
+# [2]  98652 GCCCCTCCCTCCGCCCGCCC...AATTATTTAGAAAGTTACATATA
+# [3]  98487 GCCCCTCCCTCCGCCCGCCC...GATACAGATCTTAAATTTGTCAG
+
+# Join all exons (UTRs included) of uc002zvn.3
+toString(getSeq(Hsapiens, exby[["uc002zvn.3"]]))
+# [1] "GCCCCTCCCTCCGCCC...CAAGTCTTTTTAA"</code>
+		</pre>
+	</section>
+
+	<section class="slide">
+		<h2>Summary</h2>
+		<table class="striped">
+		<thead>
+			<tr>
+				<th>Object Type</th>
+				<th>Notable Methods</th>
+			</tr>
+		</thead>
+		<tbody>
+		<tr>
+			<th role="row">OrgDb</th>
+			<td>
+				columns(), select(), mapIds(), ...
+			</td>
+		</tr>
+		<tr>
+			<th role="row">TxDb</th>
+			<td>
+				transcripts(), genes(), transcriptsBy(), exonsBy(), ...<br>
+				and methods by GRanges and GRangesList
+			</td>
+		</tr>
+		<tr>
+			<th role="row">GRanges[List]</th>
+			<td>start(), end(), strand(), mcols(), seqinfo(), ...</td>
+		</tr>
+		<tr>
+			<th role="row">Seqinfo</th>
+			<td>seqnames(), seqlengths(), isCircular(), seqlevels(), ...</td>
+		</tr>
+		<tr>
+			<th role="row">OrganismDb</th>
+			<td>Methods by OrgDb and TxDb</td>
+		</tr>
+		<tr>
+			<th role="row">BSgenome</th>
+			<td>seqnames(), getSeq()</td>
+		</tr>
+		</tbody>
+		</table>
+	</section>
+
+
+	<!-- findOverlaps
+	http://genomicsclass.github.io/book/pages/bioc1_igranges.html
+	data.table foverlap phttp://stackoverflow.com/a/27609994
+	-->
 
 	<!-- Using BioMart -->
 	<!--
@@ -932,6 +1093,7 @@ OrganismDb Object:
 			<li>TxDb's isActiveSeq()</li>
 			<li>biomaRt</li>
 			<li>GenomicRanges details and Rle</li>
+			<li>Lift over (ex. hg38 to hg19)</li>
 		</ul>
 	</section>
 
