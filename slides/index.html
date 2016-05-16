@@ -149,6 +149,7 @@
 	http://genomicsclass.github.io/book/pages/operateGRanges.html
 	https://www.bioconductor.org/help/course-materials/2015/Uruguay2015/V3-GenomicRanges.html
 	http://bioconductor.org/packages/release/bioc/vignettes/GenomicRanges/inst/doc/GRanges_and_GRangesList_slides.pdf
+	https://www.bioconductor.org/help/course-materials/2015/SeattleApr2015/B_GenomicRanges.html
 
 	Sequence Analysis
 	https://www.bioconductor.org/help/course-materials/2015/EMBO/A01_RBiocForSequenceAnalysis.html
@@ -377,7 +378,7 @@ columns(human)  # shows all available columns
 	<section class="slide">
 		<p><code>keys()</code> return values of the given column.</p>
 		<pre class="language-r">
-<code>head(keys(human, "SYMBOL"))  # [1] "A1BG" "A2M" "A2MP1" ...
+<code>keys(human, "SYMBOL")  # [1] "A1BG" "A2M" "A2MP1" ...
 
 # Passed a pattern to filter the returned symbols
 keys(human, keytype="SYMBOL", pattern="MAPK")
@@ -489,12 +490,11 @@ $MAPK6
 
 	<section class="slide tighter">
 		<pre class="language-r">
-<code>mapk_refseq_ids$MAPK1  # operate exactly as a list
+<code>refseq_ids$MAPK1  # operate exactly as a list
 # [1] "NM_002745" "NM_138957" "NP_002736" "NP_620407"
 
-# select only transcript IDs (starting with "NM_")
-lapply(
-    mapk_refseq_ids,
+lapply(  # select only transcript IDs (starting with "NM_")
+    refseq_ids,
 	function(ids) grep("^NM_", ids, value = TRUE)
 )
 # $MAPK1
@@ -751,35 +751,164 @@ seqlevels(txdb)
 		</ul>
 	</section>
 
-	<!-- GenomicRanges -->
-
 	<!-- OrganismDb -->
 	<section class="slide">
 		<h2 class="shout">OrganismDb</h2>
 	</section>
 
-	<!-- BSgenome -->
 	<section class="slide">
-		<h2 class="shout">BSgenome</h2>
+		<h2>OrganismDb objects</h2>
+		<ul>
+			<li>We learnt OrgDb and TxDb</li>
+			<li>What if we can use gene symbols to find their Entrez IDs in OrgDb, and query the gene IDs in TxDb to find their transcript forms?</li>
+			<li>OrganismDb does the work</li>
+			<li>For human the bundled OrganismDb object is <code>Homo.sapiens</code></li>
+		</ul>
+		<pre class="language-r">
+<code>library(Homo.sapiens)
+human <- Homo.sapiens</code>
+		</pre>
 	</section>
 
-	<!-- Human OrganismDb example -->
 	<section class="slide tighter">
 		<pre class="language-r">
-	<code>> Homo.sapiens
+	<code>> human
 OrganismDb Object:
 # Includes GODb Object:  GO.db
 # With data about:  Gene Ontology
-# Includes OrgDb Object:  org.Hs.eg.db
+# Includes OrgDb Object:  <mark>org.Hs.eg.db</mark>
 # Gene data about:  Homo sapiens
 # Taxonomy Id:  9606
-# Includes TxDb Object:  TxDb.Hsapiens.UCSC.hg19.knownGene
+# Includes TxDb Object:  <mark>TxDb.Hsapiens.UCSC.hg19.knownGene</mark>
 # Transcriptome data about:  Homo sapiens
 # Based on genome:  hg19
 # The <mark>OrgDb gene id ENTREZID</mark> is mapped to
 # the <mark>TxDb gene id GENEID</mark> .</code>
 		</pre>
 	</section>
+
+	<section class="slide">
+		<pre class="language-r">
+<code>select(
+    human,
+    keys = c("MAPK1"), keytype = "SYMBOL",
+    columns = c("TXNAME", "TXCHROM", "TXSTRAND")
+)
+#   SYMBOL     TXNAME TXCHROM TXSTRAND
+# 1  MAPK1 uc002zvn.3   chr22        -
+# 2  MAPK1 uc002zvo.3   chr22        -
+# 3  MAPK1 uc010gtk.1   chr22        -</code>
+		</pre>
+	</section>
+
+	<section id="human-transcripts" class="slide tighter">
+		<pre class="language-r medium">
+<code>transcripts(human, columns=c("TXNAME", "SYMBOL"))
+# 'select()' returned 1:1 mapping between keys and columns
+# GRanges object with 82960 ranges and 2 metadata columns:
+#                 seqnames           ranges strand |          TXNAME          SYMBOL
+#                    &lt;Rle&gt;        &lt;IRanges&gt;  &lt;Rle&gt; | &lt;CharacterList&gt; &lt;CharacterList&gt;
+#       [1]           chr1 [ 11874,  14409]      + |      uc001aaa.3         DDX11L1
+#       [2]           chr1 [ 11874,  14409]      + |      uc010nxq.1         DDX11L1
+#       [3]           chr1 [ 11874,  14409]      + |      uc010nxr.1         DDX11L1
+#       [4]           chr1 [ 69091,  70008]      + |      uc001aal.1           OR4F5
+#       [5]           chr1 [321084, 321115]      + |      uc001aaq.2              NA
+#       ...            ...              ...    ... .             ...             ...
+#   [82956] chrUn_gl000237   [    1,  2686]      - |      uc011mgu.1              NA
+#   [82957] chrUn_gl000241   [20433, 36875]      - |      uc011mgv.2              NA
+#   [82958] chrUn_gl000243   [11501, 11530]      + |      uc011mgw.1              NA
+#   [82959] chrUn_gl000243   [13608, 13637]      + |      uc022brq.1              NA
+#   [82960] chrUn_gl000247   [ 5787,  5816]      - |      uc022brr.1              NA
+#   -------
+#   seqinfo: 93 sequences (1 circular) from hg19 genome</code>
+		</pre>
+		<p class="next">But how can we get the contents columns like TXNAME and SYMBOL?!</p>
+	</section>
+
+	<!-- GenomicRanges -->
+	<section class="slide">
+		<h2 class="shout">GenomicRanges</h2>
+	</section>
+
+	<section class="slide">
+		<h2>GenomicRanges for genomic ranges</h2>
+		<ul>
+			<li>Fundamental package to store and operate on genomic ranges</li>
+			<li>Three main classes: <strong>IRanges</strong>, <strong>GRanges</strong>, and <strong>GRangesList</strong></li>
+			<li>Coordinate system:</li>
+			<ul>
+				<li>1-based: First base in the chromosome has coordinate 1</li>
+				<li>Closed: Start and end coordinates are include in the range)</li>
+				<li>Left-most: Start is always to the left of end, regardless of strand</li>
+			</ul>
+			<li>Can cover all functionalities. Refer to references</li>
+		</ul>
+		<div class="citation">
+			<p>Ref: <a href="http://bioconductor.org/help/course-materials/2015/LearnBioconductorFeb2015/A01.2_IntroductionToBioconductor.html" target="_blank">Introduction to Bioconductor</a></p>
+		</div>
+	</section>
+
+	<section id="granges-overview" class="slide tighter">
+		<h2>GRanges and GRangesList overview</h2>
+		<div class="citation">
+			<img class="fill w" src="pics/GRanges_cheatsheet.png" alt="">
+			<p>Ref: <a href="http://bioconductor.org/help/course-materials/2015/Uruguay2015/V3-GenomicRanges.html">Genomic Ranges For Genome-Scale Data And Annotation</a>, Martin Morgan, 2015.10</p>
+		</div>
+	</section>
+
+	<section id="grangeslist-overview" class="slide tighter">
+		<div class="citation">
+			<img class="fill w" src="pics/GRangesList_cheatsheet.png" alt="">
+			<p>Ref: <a href="http://bioconductor.org/help/course-materials/2015/Uruguay2015/V3-GenomicRanges.html">Genomic Ranges For Genome-Scale Data And Annotation</a>, Martin Morgan, 2015.10</p>
+		</div>
+	</section>
+
+	<section id="granges-alg" class="slide tighter">
+		<h2>GRanges Algebra</h2>
+		<ul>
+			<li><strong>Intra-range</strong> methods (see <code>?"intra-range-methods"</code>)</li>
+			<ul>
+				<li>Independent of other ranges in the same object; strand-aware</li>
+				<li>shift(), narrow(), flank(), promoters(), resize(), restrict(), trim()</li>
+			</ul>
+			<li><strong>Inter-range</strong> methods (see <code>?"inter-range-methods"</code>)</li>
+			<ul>
+				<li>Dependent of other ranges in the same object</li>
+				<li>range(), reduce(), gaps(), disjoin(), coverage()</li>
+			</ul>
+			<li><strong>Between-range</strong> methods</li>
+			<ul>
+				<li>Functions of two (or more) range objects</li>
+				<li>findOverlaps(), countOverlaps(), …, %over%, %within%, %outside%; union(), intersect(), setdiff(), punion(), pintersect(), psetdiff()</li>
+			</ul>
+		</ul>
+		<div class="citation">
+			<p>Ref: <a href="http://bioconductor.org/help/course-materials/2015/Uruguay2015/V3-GenomicRanges.html">Genomic Ranges For Genome-Scale Data And Annotation</a>, Martin Morgan, 2015.10</p>
+		</div>
+		<style>
+			#granges-alg > ul {
+				margin-bottom: 0em;
+			}
+		</style>
+	</section>
+
+	<section class="slide tighter">
+		<img class="cover w" src="pics/GRanges_algebra.png" alt="">
+		<div class="citation" style="bottom: 0.5em; right: 1em; position: absolute;">
+			<p>Ref: <a href="http://bioconductor.org/help/course-materials/2015/Uruguay2015/V3-GenomicRanges.html">Genomic Ranges For Genome-Scale Data And Annotation</a>, Martin Morgan, 2015.10</p>
+		</div>
+	</section>
+
+	<!-- findOverlaps
+	http://genomicsclass.github.io/book/pages/bioc1_igranges.html
+	data.table foverlap phttp://stackoverflow.com/a/27609994
+	-->
+
+	<!-- BSgenome -->
+	<section class="slide">
+		<h2 class="shout">BSgenome</h2>
+	</section>
+
 
 
 	<!-- Genomic Ranges -->
@@ -801,6 +930,8 @@ OrganismDb Object:
 		<ul class="double">
 			<li>AnnotationHub</li>
 			<li>TxDb's isActiveSeq()</li>
+			<li>biomaRt</li>
+			<li>GenomicRanges details and Rle</li>
 		</ul>
 	</section>
 
@@ -839,15 +970,6 @@ OrganismDb Object:
 			<p>(Yap, I know I haven't changed my protrait photo since <a href="https://blog.liang2.tw/2014-pyR-stat/" target="_blank">2014</a> and actually the photo I put in <a href="https://blog.liang2.tw/ggplot2-tutorial/201307_slides/#/1">2013</a> is newer)</p>
 			</div>
 		</div>
-	</section>
-
-	<section class="slide" id="problem-solved">
-		<!--
-		<video class="place" loop autoplay>
-		  <source src="https://i.imgur.com/kuT9BZR.webm" type="video/webm">
-		  Your browser doesn't support HTML5 video tag.
-		</video>
-		-->
 	</section>
 
 	<!-- END OF SLIDE CONTENT -->
