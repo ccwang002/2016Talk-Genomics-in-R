@@ -8,7 +8,7 @@ gulp.task('default', [], () => {
 		ui: false,
 		notify: false,
 		server: {
-			baseDir: '.',
+			baseDir: './slides',
 			index: 'index.html'
 		}
 	});
