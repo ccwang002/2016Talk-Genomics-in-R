@@ -26,6 +26,12 @@
 		.citation pre {
 			text-align: left;
 		}
+		pre.medium {
+			font-size: 0.75em;
+		}
+		pre.medium code {
+			line-height: 1.5em;
+		}
 		pre.small {
 			font-size: 0.5em;
 		}
@@ -260,8 +266,12 @@ modPlot("GAPDH", collapse=FALSE, useGeneSym=FALSE)</code>
 		</div>
 	</section>
 
-	<section id="ph525-annotation-vis-result" class="slide no-number">
+	<section id="ph525-annotation-vis-gapdh" class="slide no-number">
 		<img class="cover w" src="pics/modPlot_GAPDH.png" alt="">
+	</section>
+
+	<section id="ph525-annotation-vis-mapk1" class="slide no-number">
+		<img class="cover w" src="pics/modPlot_mapk1.png" alt="">
 	</section>
 
 	<section id="ph525-annotation-vis-interp" class="slide">
@@ -377,7 +387,6 @@ keys(human, keytype="SYMBOL", pattern="^MAPK[[:digit:]]{2}$")
 # [1] "MAPK14" "MAPK11" "MAPK10" "MAPK13" "MAPK12" "MAPK15"</code>
 		</pre>
 	</section>
-
 
 	<section class="slide">
 		<h2>Use keytype to query on other columns</h2>
@@ -497,17 +506,201 @@ lapply(
 
 	<!-- txDb -->
 	<section class="slide">
-		<h2 class="shout">txDb</h2>
+		<h2 class="shout">TxDb</h2>
 	</section>
 
-	<!-- BSgenome -->
 	<section class="slide">
-		<h2 class="shout">BSgenome</h2>
+		<h2>TxDb objects</h2>
+		<ul>
+			<li>TxDb objects contains transcriptome, that is, <strong>representation of transcripts as genomic regions</strong></li>
+			<li>Support previous described columns(), keys(), select(), mapIds() functions</li>
+			<li>Need special R data structure to <strong>represent set of genomic locations</strong> (e.g. exons, introns, and UTRs) of a trancript. So TxDb objects have <strong>specialized methods</strong></li>
+			<li>For human hg19, Bioconuctor ships TxDb.Hsapiens.UCSC.hg19.knownGene, a TxDb object based on <strong>UCSC KnownGene IDs</strong></li>
+		</ul>
+	</section>
+
+	<section class="slide">
+		<pre class="language-r">
+<code>library(TxDb.Hsapiens.UCSC.hg19.knownGene)
+txdb <- TxDb.Hsapiens.UCSC.hg19.knownGene
+keytypes(txdb)
+# [1] "CDSID" "CDSNAME" "EXONID" "EXONNAME" "GENEID"
+# [6] "TXID" "TXNAME"
+columns(txdb)
+#  [1] "CDSCHROM" "CDSEND" "CDSID" "CDSNAME" "CDSSTART"
+#  [6] "CDSSTRAND" "EXONCHROM" "EXONEND" "EXONID" "EXONNAME"
+# [11] "EXONRANK" "EXONSTART" "EXONSTRAND" "GENEID" "TXCHROM"
+# [16] "TXEND" "TXID" "TXNAME" "TXSTART" "TXSTRAND" "TXTYPE"
+</code>
+		</pre>
+	</section>
+
+	<section class="slide tighter">
+		<p><code>transcripts(txdb)</code> returns all transcript records (in <strong>GRanges</strong>).</p>
+		<pre class="language-r medium">
+<code>txs <- transcripts(txdb); txs
+# GRanges object with 82960 ranges and 2 metadata columns:
+#                 seqnames           ranges strand |     tx_id     tx_name
+#                    &lt;Rle&gt;        &lt;IRanges&gt;  &lt;Rle&gt; | &lt;integer&gt; &lt;character&gt;
+#       [1]           chr1 [ 11874,  14409]      + |         1  uc001aaa.3
+#       [2]           chr1 [ 11874,  14409]      + |         2  uc010nxq.1
+#       [3]           chr1 [ 11874,  14409]      + |         3  uc010nxr.1
+#       [4]           chr1 [ 69091,  70008]      + |         4  uc001aal.1
+#       [5]           chr1 [321084, 321115]      + |         5  uc001aaq.2
+#       ...            ...              ...    ... .       ...         ...
+#   [82956] chrUn_gl000237   [    1,  2686]      - |     82956  uc011mgu.1
+#   [82957] chrUn_gl000241   [20433, 36875]      - |     82957  uc011mgv.2
+#   [82958] chrUn_gl000243   [11501, 11530]      + |     82958  uc011mgw.1
+#   [82959] chrUn_gl000243   [13608, 13637]      + |     82959  uc022brq.1
+#   [82960] chrUn_gl000247   [ 5787,  5816]      - |     82960  uc022brr.1
+#   -------
+#   seqinfo: 93 sequences (1 circular) from hg19 genome
+</code>
+		</pre>
+	</section>
+
+	<section class="slide tighter">
+		<p>Similar extractor functions exist for <code>genes()</code>, <code>exons()</code>, <code>cds()</code>.</p>
+		<pre class="language-r medium">
+<code>genes <- genes(txdb); genes
+# GRanges object with 23056 ranges and 1 metadata column:
+#         seqnames                 ranges strand |     gene_id
+#            &lt;Rle&gt;              &lt;IRanges&gt;  &lt;Rle&gt; | &lt;character&gt;
+#       1    chr19 [ 58858172,  58874214]      - |           1
+#      10     chr8 [ 18248755,  18258723]      + |          10
+#     100    chr20 [ 43248163,  43280376]      - |         100
+#    1000    chr18 [ 25530930,  25757445]      - |        1000
+#   10000     chr1 [243651535, 244006886]      - |       10000
+#     ...      ...                    ...    ... .         ...
+#    9991     chr9 [114979995, 115095944]      - |        9991
+#    9992    chr21 [ 35736323,  35743440]      + |        9992
+#    9993    chr22 [ 19023795,  19109967]      - |        9993
+#    9994     chr6 [ 90539619,  90584155]      + |        9994
+#    9997    chr22 [ 50961997,  50964905]      - |        9997
+#   -------
+#   seqinfo: 93 sequences (1 circular) from hg19 genome</code>
+		</pre>
+	</section>
+
+	<section class="slide">
+		<p>Can subset the GRanges object via the row id (gene_id).</p>
+		<pre class="language-r">
+<code>genes[c("5594", "5595")]
+# GRanges object with 2 ranges and 1 metadata column:
+#        seqnames               ranges strand |     gene_id
+#           &lt;Rle&gt;            &lt;IRanges&gt;  &lt;Rle&gt; | &lt;character&gt;
+#   5594    chr22 [22113947, 22221970]      - |        5594
+#   5595    chr16 [30125426, 30134630]      - |        5595
+#   -------
+#   seqinfo: 93 sequences (1 circular) from hg19 genome</code>
+		</pre>
+	</section>
+
+	<section id="transcriptby" class="slide">
+		<h2>Group transcripts</h2>
+		<p>How to find transcripts of a gene? How to know the extrons, UTRs of a transcripts?</p>
+		<ul>
+			<li><code>transcriptsBy(txdb, by = "gene")</code></li>
+			<li><code>exonsBy(txdb, by = "tx", use.names = TRUE)</code></li>
+			<li>There are more grouper functions such as intronsByTranscript(), fiveUTRsByTranscript(), and threeUTRsByTranscript(). Refer to help page for their usage.</li>
+		</ul>
+	</section>
+
+	<section class="slide">
+		<pre class="language-r medium">
+<code>txby <- transcriptsBy(txdb, by="gene"); txby
+# <mark>GRangesList</mark> object of length 23459:
+# <mark>$1</mark>
+# GRanges object with 2 ranges and 2 metadata columns:
+#       seqnames               ranges strand |     tx_id     tx_name
+#          &lt;Rle&gt;            &lt;IRanges&gt;  &lt;Rle&gt; | &lt;integer&gt; &lt;character&gt;
+#   [1]    chr19 [58858172, 58864865]      - |     70455  uc002qsd.4
+#   [2]    chr19 [58859832, 58874214]      - |     70456  uc002qsf.2
+#
+# <mark>$10</mark>
+# GRanges object with 1 range and 2 metadata columns:
+#       seqnames               ranges strand | tx_id    tx_name
+#   [1]     chr8 [18248755, 18258723]      + | 31944 uc003wyw.1
+#
+# ...
+# <23456 more elements>
+# -------
+# seqinfo: 93 sequences (1 circular) from hg19 genome</code>
+		</pre>
+	</section>
+
+	<section class="slide">
+		<p><code>transcriptsBy()</code> returns a <strong>GRangesList</strong>, whose keys are gene IDs (Entrez). Select MAPK1's transcripts and verify with what we found in OrgDb.</p>
+		<pre class="language-r medium">
+<code>txby[[5594]]
+# GRanges object with 3 ranges and 2 metadata columns:
+#       seqnames               ranges strand |     tx_id     tx_name
+#          &lt;Rle&gt;            &lt;IRanges&gt;  &lt;Rle&gt; | &lt;integer&gt; &lt;character&gt;
+#   [1]    chr15 [41474931, 41482568]      - |     55602  uc001znj.3
+#   [2]    chr15 [41474931, 41522895]      - |     55603  uc001znk.3
+#   [3]    chr15 [41474931, 41522895]      - |     55604  uc010ucv.2
+#   -------
+#   seqinfo: 93 sequences (1 circular) from hg19 genome</code>
+		</pre>
+		<p>Why we know the gene IDs are Entrez Gene IDs? (try printing txdb itself)</p>
+	</section>
+
+	<section class="slide" id="seqinfo">
+		<h2>Extract chromosome information</h2>
+		<p>Extract the chromosome information by <code>seqinfo()</code>, returning a <strong>Seqinfo</strong> object. Works on all GRanges objects.</p>
+	<pre class="language-r medium">
+<code>si <- seqinfo(txdb); si
+# Seqinfo object with 93 sequences (1 circular) from hg19 genome:
+#   <mark>seqnames       seqlengths isCircular genome</mark>
+#   chr1            249250621       &lt;NA&gt;   hg19
+#   chr2            243199373       &lt;NA&gt;   hg19
+#   chr3            198022430       &lt;NA&gt;   hg19
+#   ...                   ...        ...    ...
+#   chrUn_gl000247      36422       &lt;NA&gt;   hg19
+#   chrUn_gl000248      39786       &lt;NA&gt;   hg19
+#   chrUn_gl000249      38502       &lt;NA&gt;   hg19
+</code>
+	</pre>
+	</section>
+
+	<section class="slide">
+		<h2>Seqinfo object operations</h2>
+		<pre class="language-r">
+<code>seqnames(si)  # use its column name as function
+# [1] "chr1" "chr2" "chr3" "chr4" "chr5" ...
+seqlengths(si)
+#      chr1      chr2      chr3      chr4      chr5 ...
+# 249250621 243199373 198022430 191154276 180915260 ...
+isCircular(si)
+# chr1 chr2 chr3 chr4 chr5 ... chrM ...
+#   NA   NA   NA   NA   NA ... TRUE ...
+		</code></pre>
+	</section>
+
+	<section class="slide tighter">
+		<h2>Change chromsome naming styles</h2>
+		<p>For example, Ensembl uses NCBI style naming (1, 2, ...); UCSC prefix all chromosome names with "chr".</p>
+
+		<pre class="language-r">
+<code>seqlevels(txdb)
+# [1] "chr1" "chr2" "chr3" "chr4" "chr5" "chr6" ...
+seqlevelsStyle(txdb)
+# [1] "UCSC"
+seqlevelsStyle(txdb) <- "NCBI"  # change the naming style
+seqlevels(txdb)
+# [1] "1" "2" "3" "4" "5" "6" ...
+</code>
+		</pre>
 	</section>
 
 	<!-- OrganismDb -->
 	<section class="slide">
 		<h2 class="shout">OrganismDb</h2>
+	</section>
+
+	<!-- BSgenome -->
+	<section class="slide">
+		<h2 class="shout">BSgenome</h2>
 	</section>
 
 	<!-- Human OrganismDb example -->
@@ -543,10 +736,11 @@ OrganismDb Object:
 	http://genomicsclass.github.io/book/pages/bioc1_liftOver.html
 	-->
 
-	<section class="slide">
+	<section id="things-without-time-to-mention" class="slide">
 		<h2>Topics I don't have time to say today</h2>
 		<ul class="double">
 			<li>AnnotationHub</li>
+			<li>TxDb's isActiveSeq()</li>
 		</ul>
 	</section>
 
