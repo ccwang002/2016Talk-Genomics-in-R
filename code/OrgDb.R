@@ -1,4 +1,4 @@
-library(Homo.sapiens)
+library(org.Hs.eg.db)
 
 human <- org.Hs.eg.db  # eg means data comes from NCBI entrez gene. try `help("SYMBOL")`
 columns(human)
@@ -10,6 +10,7 @@ mapk_gene_family_info <- select(
     keytype = "SYMBOL",
     columns = c("ENTREZID", "ENSEMBL", "GENENAME")
 )
+mapk_gene_family_info
 
 MAPKS <- c("MAPK1", "MAPK3", "MAPK6")
 select(
@@ -38,4 +39,12 @@ mapIds(
     keytype = "SYMBOL",
     column = "REFSEQ",
     multiVals = function(refseq_ids) grep("^NM_", refseq_ids, value = TRUE)
+)
+
+mapIds(
+    human,
+    keys = MAPKS,
+    keytype = "SYMBOL",
+    column = "UCSCKG",
+    multiVals = "list"
 )
