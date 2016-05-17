@@ -1,0 +1,1320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Genomics in R</title>
+	<meta name="viewport" content="width=792, user-scalable=no">
+	<meta http-equiv="x-ua-compatible" content="ie=edge">
+
+	<!-- Twitter Card -->
+	<!-- Ref: https://dev.twitter.com/cards/types/summary-large-image -->
+	<meta name="twitter:card" content="summary_large_image">
+	<meta name="twitter:site" content="@ccwang002">
+	<meta name="twitter:creator" content="@ccwang002">
+	<meta name="twitter:title" content="Genomics in R">
+	<meta name="twitter:description" content="An intrdouction of using R Bioconductor to search genomic annotaions and faciliates well organized classes and tools including OrgDB, TxDb, OrganismDb, BSgenome, and GenomicRanges.">
+	<meta name="twitter:image" content="pics/modPlot_GAPDH.png">
+
+	<!-- Icon -->
+	<link href="pics/twR_logo.png" rel="icon" type="image/x-icon" />
+	<!-- CSS Stle -->
+	<link rel="stylesheet" href="lib/shower/themes/styles/screen-16x10.css">
+	<link rel="stylesheet" href="lib/highlight/styles/github.css" type="text/css"/>
+	<style>
+		.caption p {
+			font-size: 0.6em;
+		}
+		.slide.mid h2 {
+			font-size: 110px;
+			font-family: Roboto Light;
+			font-weight: 300;
+			color: white;
+			width: 65%;
+			line-height: 1.25em;
+			text-shadow: 1px 1px 3px black;
+		}
+		.citation pre {
+			text-align: left;
+		}
+		pre.medium {
+			font-size: 0.75em;
+		}
+		pre.medium code {
+			line-height: 1.5em;
+		}
+		pre.small {
+			font-size: 0.5em;
+		}
+		pre.small code {
+			line-height: 1.5em;
+		}
+
+		.sidenote {
+			border: 2px dashed #9e9e9e;
+			position: absolute;
+			padding: 1em;
+			line-height: 1.5em;
+			color: #9e9e9e;
+		}
+		.sidenote p {
+			margin-bottom: 0px;
+		}
+
+	</style>
+</head>
+<body class="shower list">
+	<!-- Header in overview -->
+	<header class="caption">
+		<h1>Genomics in R</h1>
+		<p><a href="http://liang2.tw">Liang-Bo Wang (亮亮)</a>, 2016-05-16</p>
+	</header>
+
+	<!-- Cover Slide -->
+	<section id="cover" class="slide no-number">
+		<h2 id="talk-header">Genomics in R</h2>
+		<p id="talk-author">
+			By <a href="http://liang2.tw" target="_blank">Liang<sup>2</sup></a> under CC 4.0 BY license
+		</p>
+		<p id="usage-instr">
+			<kbd>Esc</kbd> to overview <br />
+			<kbd>←</kbd> <kbd>→</kbd> to navigate
+		</p>
+		<img src="pics/cover.jpg" class="cover w" alt="">
+		<style>
+			#talk-header,
+			#talk-author {
+				left: 56px;
+			}
+			#talk-header {
+				color: #EEE;
+				text-align: left;
+				font-size: 100px;
+				line-height: 1.3em;
+				text-shadow: -1px 1px 3px #000;
+				bottom: 160px;
+				position: absolute;
+
+			}
+			#talk-author {
+				line-height: 1.2em;
+				text-shadow: -1px 1px 3px #000;
+				left: 65px;
+				bottom: 120px;
+				position: absolute;
+			}
+			#talk-author a {
+				color: #FFFA20;
+			}
+			#cover p {
+				margin: 10px 0 0;
+				color: #FFF;
+				font-size: 32px;
+				opacity: 1;
+			}
+			#usage-instr {
+				position: absolute;
+				text-align: right;
+				right: 30px;
+				bottom: 40px;
+			}
+			#usage-instr kbd {
+				opacity: 0.8;
+				color: #666;
+				background-color: white;
+			}
+			#cover img {
+				opacity: 0.95;
+			}
+			#cover {
+				background: black;
+			}
+		</style>
+	</section>
+
+	<!-- Proposed Outline -->
+	<!--
+	- A very quick guide to genome, sequencing, genomic annotation and genome browser
+	- Bioconductor introduction
+	- Annotation and genome reference (OrgDb, TxDb, OrganismDb, BSgenome)
+	- Operations on genome (GenomicRanges)
+	- Experiment data storage (ExpressionSets) (optional, if we have time)
+	-->
+
+
+	<!-- Section: Genomics Intro -->
+	<section class="slide">
+		<h2>What is <mark>genome</mark>?</h2>
+		<ul>
+			<li>Genome are the source code of life</li>
+			<li>It changes, creates branches along thousands of generations</li>
+			<li>But we don't understand life's source code. We can only observe its binary executives (e.g. you, me, and cell lines) and plug some debugger in it</li>
+			<li>After a hunderd year of research, we somehow get major rules of how it compiles. Also, we decoded many organisms' source code (e.g. Human Genome Project and ENCODE)</li>
+		</ul>
+		<img class="cover place l" src="pics/source_code_of_life.png" alt="">
+	</section>
+
+	<section class="slide">
+		<h2>Genome Browser</h2>
+		<ul>
+			<li>After years of brute-force debugging, we got many information about the genome</li>
+			<li>For example, where a gene locates; what its protein product looks like</li>
+			<li>Most of them can be annotated or anchored along the genomic coordinates</li>
+			<li>People view these annotation via genome browser</li>
+			<li>Popular choices of genome browser: <a href="https://genome.ucsc.edu/" target="_blank">UCSC</a> and <a href="http://www.ensembl.org/index.html" target="_blank">Ensembl</a></li>
+		</ul>
+	</section>
+
+	<section class="slide">
+		<img class="cover w" src="pics/UCSC_Genome_Browser.png" alt="">
+	</section>
+
+	<section class="slide">
+		<img class="cover h" src="pics/Ensembl_Genome_Browser.png" alt="">
+	</section>
+
+	<section class="slide">
+		<h2><mark>Reproducible</mark> research</h2>
+		<ul>
+			<li>Reproducible results from the very raw data to analysis outcome</li>
+			<li>Important issue in recent studies</li>
+			<li>A good way to make all the results reproducible is by programming and automation</li>
+		</ul>
+	</section>
+
+	<!-- Section: Bioconductor -->
+	<section class="slide mid no-number">
+		<h2>Bioconductor</h2>
+		<img src="pics/mid.jpg" class="cover w" alt="">
+	</section>
+
+	<section class="slide">
+		<h2>Bioconductor</h2>
+		<figure>
+			<blockquote>
+<p>Bioconductor provides tools for the analysis and comprehension of high-throughput genomic data.</p>
+			</blockquote>
+			<figcaption>&mdash; <a href="https://www.bioconductor.org/">Bioconductor Official Site</a></figcaption>
+		</figure>
+		<ul>
+			<li>CRAN-like repository for Bioinformatics</li>
+			<li>Two release per year</li>
+			<li>Install and update itself by <br><code>source("https://bioconductor.org/biocLite.R")</code></li>
+			<li>Install Bioconductor package by <code>biocLite("PKGNAME")</code></li>
+		</ul>
+	</section>
+
+	<section id="bioc-setup" class="slide">
+	<h2>R environment setup</h2>
+		<pre class="language-r">
+<code>source("https://bioconductor.org/biocLite.R")
+biocLite()   # install fundamental packages
+biocLite(c(  # packages required for today's demo
+    "Homo.sapiens",
+    "BSgenome.Hsapiens.UCSC.hg19",
+))
+install.packages(c("devtools", "stringr", "plyr"))</code>
+		</pre>
+	</section>
+
+
+	<!-- Section: Annotation Resources -->
+	<section id="sec-annotation-resources" class="slide mid no-number">
+		<h2>Annotation Resources</h2>
+		<img src="pics/mid.jpg" class="cover w" alt="">
+	</section>
+
+	<section class="slide">
+		<h2>Annotation Sources in Bioconductor</h2>
+		<table class="striped">
+		<thead>
+			<tr>
+				<th>Object Type</th>
+				<th>Example Package Name</th>
+			</tr>
+		</thead>
+		<tbody>
+		<tr>
+			<th role="row">OrgDb</th>
+			<td>
+				<a href="http://bioconductor.org/packages/org.Hs.eg.db/">
+					org.Hs.eg.db
+				</a>
+			</td>
+		</tr>
+		<tr>
+			<th role="row">TxDb</th>
+			<td>
+				<a href="http://bioconductor.org/packages/TxDb.Hsapiens.UCSC.hg19.knownGene/">
+					TxDb.Hsapiens.UCSC.hg19.knownGene
+				</a>
+			</td>
+		</tr>
+		<tr>
+			<th role="row">BSgenome</th>
+			<td>
+				<a href="http://bioconductor.org/packages/BSgenome.Hsapiens.UCSC.hg19/">
+					BSgenome.Hsapiens.UCSC.hg19
+				</a>
+			</td>
+		</tr>
+		<tr>
+			<th role="row">OrganismDb</th>
+			<td>
+				<a href="http://bioconductor.org/packages/Homo.sapiens/">Homo.sapiens</a>
+			</td>
+		</tr>
+		<tr>
+			<th role="row">AnnotationHub</th>
+			<td>
+				<a href="http://bioconductor.org/packages/AnnotationHub/">AnnotationHub</a>
+			</td>
+		</tr>
+		</tbody>
+		</table>
+		<div class="citation">
+			<p>Ref: Bioconductor workflow &ndash; <a href="https://www.bioconductor.org/help/workflows/annotation/Annotation_Resources/">Annotation Resources</a>.</p>
+		</div>
+		<p>Bioconductor contains hundreds of these <mark>AnnotationData</mark> packages.</p>
+	</section>
+
+	<section class="slide">
+		<h2>AnnotationData packages</h2>
+		<ul>
+			<li>Annotations <strong>standardize a way</strong> to compare their results with others</li>
+			<li>Mappings exists to help <strong>convert between different standards</strong></li>
+				<ul>
+					<li>Find a gene's protein product</li>
+					<li>Obtain a transcript all exons' DNA sequences</li>
+					<li>Convert gene symbol to its Entrez Gene ID, and to its Ensebml gene ID</li>
+					<li>Update results mapped on a older reference to the latest one</li>
+				</ul>
+			<li>Those data are <strong>stored as databases</strong> (technically, SQLite3 database files)</li>
+			<li>They share <strong>similar APIs</strong></li>
+		</ul>
+	</section>
+
+	<section id="ph525x-annotation-vis" class="slide">
+		<h2>What can these sources provide?</h2>
+		<p>We can use these annotation sources to act as a simple genome browser. Here we use Bioconductor to show <mark>gene GAPDH in human genome hg19</mark>.</p>
+		<div class="citation">
+		<pre class="language-r">
+<code>devtools::install_github("genomicsclass/ph525x")
+biocLite("Gviz")  # Gviz for plotting genomic data
+library(ph525x)  # Provides handy helper functions
+
+modPlot("GAPDH", collapse=FALSE, useGeneSym=FALSE)</code>
+		</pre>
+<p>Ref: <a href="http://genomicsclass.github.io/book/pages/annoPhen.html">Annotating phenotypes and molecular function</a> from PH525x series</p>
+		</div>
+	</section>
+
+	<section id="ph525-annotation-vis-gapdh" class="slide no-number">
+		<img class="cover w" src="pics/modPlot_GAPDH.png" alt="">
+	</section>
+
+	<section id="ph525-annotation-vis-mapk1" class="slide no-number">
+		<img class="cover w" src="pics/modPlot_MAPK1.png" alt="">
+	</section>
+
+	<section id="ph525-annotation-vis-interp" class="slide">
+		<h2>From the plot, Bioconductor can</h2>
+		<ul>
+			<li>Know the gene's <strong>genomic location</strong> (e.g. chromosome, region, and strand)</li>
+			<li>Know multiple transcript forms and their <strong>UCSC knownGene IDs</strong></li>
+			<li>Know the <strong>transcript structure</strong> (e.g. exons, introns, 3' UTR, and 5' UTR)</li>
+		</ul>
+		<p>Behind the scene, <code>modPlot(...)</code> did a lot of queries. Let's find out how to extract this information ourselves using the annotation related API.</p>
+		<p class="note">Plot is made by Gviz. Though we are not able to introduce it today.</p>
+	</section>
+
+
+	<!-- Section: OrgDb -->
+	<section class="slide">
+		<h2 class="shout">orgDb</h2>
+	</section>
+
+	<section class="slide">
+		<h2>OrgDb objects</h2>
+		<ul>
+			<li>OrgDb objects contains gene-based information</li>
+			<li>Useful to convert between different IDs, e.g. symbols, gene IDs, and names</li>
+			<li>We give more introduction about how to query OrgDb objects, but the usage can be applied to TxDb, BSgenome, OrganismDb, and many</li>
+			<li>Common usages:</li>
+			<ul>
+				<li><code>columns()</code>, <code>keytypes()</code>, <code>keys()</code></li>
+				<li><code>select()</code>, <code>mapIds()</code></li>
+			</ul>
+		</ul>
+	</section>
+
+	<section id="orgdb-meta" class="slide tighter">
+		<pre class="language-r small">
+	<code>> human
+OrgDb object:
+| DBSCHEMAVERSION: 2.1
+| Db type: OrgDb
+| Supporting package: AnnotationDbi
+| DBSCHEMA: HUMAN_DB
+| ORGANISM: Homo sapiens
+| SPECIES: Human
+| EGSOURCEDATE: 2016-Mar14
+| EGSOURCENAME: Entrez Gene
+| EGSOURCEURL: ftp://ftp.ncbi.nlm.nih.gov/gene/DATA
+| <mark>CENTRALID: EG</mark>
+| TAXID: 9606
+| GOSOURCENAME: Gene Ontology
+| GOSOURCEURL: ftp://ftp.geneontology.org/pub/go/godatabase/archive/latest-lite/
+| GOSOURCEDATE: 20160305
+| GOEGSOURCEDATE: 2016-Mar14
+| GOEGSOURCENAME: Entrez Gene
+| GOEGSOURCEURL: ftp://ftp.ncbi.nlm.nih.gov/gene/DATA
+| KEGGSOURCENAME: KEGG GENOME
+| KEGGSOURCEURL: ftp://ftp.genome.jp/pub/kegg/genomes
+| KEGGSOURCEDATE: 2011-Mar15
+| GPSOURCENAME: UCSC Genome Bioinformatics (Homo sapiens)
+| GPSOURCEURL: ftp://hgdownload.cse.ucsc.edu/goldenPath/hg19
+| GPSOURCEDATE: 2010-Mar22
+| ENSOURCEDATE: 2016-Mar9
+| ENSOURCENAME: Ensembl
+| ENSOURCEURL: ftp://ftp.ensembl.org/pub/current_fasta
+| UPSOURCENAME: Uniprot
+| UPSOURCEURL: http://www.UniProt.org/
+| UPSOURCEDATE: Wed Mar 23 15:50:09 2016</code>
+		</pre>
+		<div class="sidenote">
+			<p>Many metadata about each annotation's original source and last update date can be found here.</p>
+		</div>
+		<style>
+			#orgdb-meta .sidenote {
+				width: 15em;
+				right: 100px;
+				top: 52px;
+			}
+		</style>
+	</section>
+
+	<section class="slide">
+		<h2>Human's OrgDb</h2>
+		<pre class="language-r">
+<code>library(org.Hs.eg.db)
+human <- org.Hs.eg.db
+columns(human)  # shows all available columns
+# "ACCNUM"   "ALIAS"  "ENSEMBL"  "ENSEMBLPROT" "ENSEMBLTRANS"
+# "ENTREZID" "ENZYME" "EVIDENCE" "EVIDENCEALL" "GENENAME"
+# "GO" "GOALL" "IPI"  "MAP" "OMIM" "ONTOLOGY"  "ONTOLOGYALL" ...
+</code>
+		</pre>
+		<p>org.Hs.eg.db's "eg" means data come from NCBI Entrez Gene. Info about each column can be found by <code>help("ENSEMBL")</code></p>
+	</section>
+
+	<section class="slide">
+		<h2>OrgDb usage (cont'd)</h2>
+		</pre>
+		<ul>
+			<li>Among all columns, some columns contain distinct values, such as gene ID (ENTREZID)</li>
+			<li>Called <strong>keytype</strong>. Keytypes can identify a unique record, which can be further mapped to differnt annotations.</li>
+			<li>Find all keytypes by <code>keytypes(orgDb)</code>.</li>
+		</ul>
+	</section>
+
+	<section class="slide">
+		<p><code>keys()</code> return values of the given column.</p>
+		<pre class="language-r">
+<code>keys(human, "SYMBOL")  # [1] "A1BG" "A2M" "A2MP1" ...
+
+# Passed a pattern to filter the returned symbols
+keys(human, keytype="SYMBOL", pattern="MAPK")
+# [1] "MAPK14" "MAPK1" "MAPK3" "MAPK4" "MAPK6" "MAPK7" ...
+# Accept regex as well
+keys(human, keytype="SYMBOL", pattern="^MAPK[[:digit:]]{2}$")
+# [1] "MAPK14" "MAPK11" "MAPK10" "MAPK13" "MAPK12" "MAPK15"</code>
+		</pre>
+	</section>
+
+	<section class="slide">
+		<h2>Use keytype to query on other columns</h2>
+		<p><code>select()</code> connects different columns. Say, what are the Entrez Gene IDs and their full name for MAPK gene family?</p>
+		<pre class="language-r">
+<code>select(
+    human,
+    keys = c("MAPK1", "MAPK3", "MAPK6"),
+    keytype = "SYMBOL",
+    columns = c("ENTREZID", "GENENAME")
+)</code>
+		</pre>
+	</section>
+
+	<section class="slide">
+		<h2>Query result</h2>
+		<pre class="language-r">
+<code># select(...) from the last page
+# 'select()' returned <mark>1:1 mapping</mark> between keys and columns
+  SYMBOL ENTREZID                           GENENAME
+1  MAPK1     5594 mitogen-activated protein kinase 1
+2  MAPK3     5595 mitogen-activated protein kinase 3
+3  MAPK6     5597 mitogen-activated protein kinase 6</code>
+		</pre>
+
+		<p>How does these functions interact with the underlying database?</p>
+	</section>
+
+<section class="slide tighter no-number">
+	<pre class="language-sql">
+<code>-- Get SQLite3 database filepath by `dbfile(org.Hs.eg.db)`
+sqlite> SELECT symbol, gene_id AS entrez_id, gene_name
+   ...> FROM genes JOIN (
+   ...>     SELECT * FROM gene_info
+   ...>     WHERE symbol IN ("MAPK1", "MAPK3", "MAPK6")
+   ...> ) AS symbol_info
+   ...> ON genes._id = symbol_info._id;
+symbol	entrez_id	gene_name
+MAPK1	5594		mitogen-activated protein kinase 1
+MAPK3	5595		mitogen-activated protein kinase 3
+MAPK6	5597		mitogen-activated protein kinase 6</code>
+	</pre>
+</section>
+
+	<section class="slide twocol">
+		<h2>When query has 1+ result mappings</h2>
+		<div class="left">
+			<p>For example, <strong>find all RefSeq IDs</strong> for these MAPK-family genes.</p>
+			<pre class="language-r">
+<code>select(
+    human,
+    keys = MAPKS,
+    keytype = "SYMBOL",
+    columns = c("REFSEQ")
+)
+</code>
+			</pre>
+		</div>
+		<div class="right">
+			<pre class="language-r">
+<code># 'select()' returned 1:many ...
+   SYMBOL       REFSEQ
+1   MAPK1    NM_002745
+2   MAPK1    NM_138957
+3   MAPK1    NP_002736
+4   MAPK1    NP_620407
+5   MAPK3 NM_001040056
+6   MAPK3 NM_001109891
+# ...</code>
+			</pre>
+		</div>
+	</section>
+
+	<section class="slide tighter twocol">
+		<h2>Group multiple mapping</h2>
+		<p>Use <code>mapIds(multiVals="list")</code>, which returns a list-like structure grouped by having the same key (here is SYMBOL).</p>
+		<div class="left">
+			<pre class="language-r">
+<code>refseq_ids <- mapIds(
+    human,
+    keys = MAPKS,
+    keytype = "SYMBOL",
+    column = "REFSEQ",
+    multiVals = "list"
+)</code>
+			</pre>
+		</div>
+		<div class="right">
+			<pre class="language-r">
+<code>$MAPK1
+[1] "NM_002745" "NM_138957" ...
+$MAPK3
+[1] "NM_001040056" "NM_001109891"
+$MAPK6
+[1] "NM_002748" "NP_002739" ...
+# ...</code>
+			</pre>
+		</div>
+	</section>
+
+	<section class="slide tighter">
+		<pre class="language-r">
+<code>refseq_ids$MAPK1  # operate exactly as a list
+# [1] "NM_002745" "NM_138957" "NP_002736" "NP_620407"
+
+lapply(  # select only transcript IDs (starting with "NM_")
+    refseq_ids,
+	function(ids) grep("^NM_", ids, value = TRUE)
+)
+# $MAPK1
+# [1] "NM_002745" "NM_138957"
+# $MAPK3
+# [1] "NM_001040056" "NM_001109891" "NM_002746" ... </code>
+		</pre>
+	</section>
+
+
+	<!-- Section: txDb -->
+	<section class="slide">
+		<h2 class="shout">TxDb</h2>
+	</section>
+
+	<section class="slide">
+		<h2>TxDb objects</h2>
+		<ul>
+			<li>TxDb objects contains transcriptome, that is, <strong>representation of transcripts as genomic regions</strong></li>
+			<li>Support previous described columns(), keys(), select(), mapIds() functions</li>
+			<li>Need special R data structure to <strong>represent set of genomic locations</strong> (e.g. exons, introns, and UTRs) of a trancript. So TxDb objects have <strong>specialized methods</strong></li>
+			<li>For human hg19, Bioconductor ships TxDb.Hsapiens.UCSC.hg19.knownGene, a TxDb object based on <strong>UCSC KnownGene IDs</strong></li>
+		</ul>
+	</section>
+
+	<section class="slide">
+		<pre class="language-r">
+<code>library(TxDb.Hsapiens.UCSC.hg19.knownGene)
+txdb <- TxDb.Hsapiens.UCSC.hg19.knownGene
+keytypes(txdb)
+# [1] "CDSID" "CDSNAME" "EXONID" "EXONNAME" "GENEID"
+# [6] "TXID" "TXNAME"
+columns(txdb)
+#  [1] "CDSCHROM" "CDSEND" "CDSID" "CDSNAME" "CDSSTART"
+#  [6] "CDSSTRAND" "EXONCHROM" "EXONEND" "EXONID" "EXONNAME"
+# [11] "EXONRANK" "EXONSTART" "EXONSTRAND" "GENEID" "TXCHROM"
+# [16] "TXEND" "TXID" "TXNAME" "TXSTART" "TXSTRAND" "TXTYPE"
+</code>
+		</pre>
+	</section>
+
+	<section class="slide tighter">
+		<p><code>transcripts(txdb)</code> returns all transcript records (in <strong>GRanges</strong>).</p>
+		<pre class="language-r medium">
+<code>txs <- transcripts(txdb); txs
+# GRanges object with 82960 ranges and 2 metadata columns:
+#                 seqnames           ranges strand |     tx_id     tx_name
+#                    &lt;Rle&gt;        &lt;IRanges&gt;  &lt;Rle&gt; | &lt;integer&gt; &lt;character&gt;
+#       [1]           chr1 [ 11874,  14409]      + |         1  uc001aaa.3
+#       [2]           chr1 [ 11874,  14409]      + |         2  uc010nxq.1
+#       [3]           chr1 [ 11874,  14409]      + |         3  uc010nxr.1
+#       [4]           chr1 [ 69091,  70008]      + |         4  uc001aal.1
+#       [5]           chr1 [321084, 321115]      + |         5  uc001aaq.2
+#       ...            ...              ...    ... .       ...         ...
+#   [82956] chrUn_gl000237   [    1,  2686]      - |     82956  uc011mgu.1
+#   [82957] chrUn_gl000241   [20433, 36875]      - |     82957  uc011mgv.2
+#   [82958] chrUn_gl000243   [11501, 11530]      + |     82958  uc011mgw.1
+#   [82959] chrUn_gl000243   [13608, 13637]      + |     82959  uc022brq.1
+#   [82960] chrUn_gl000247   [ 5787,  5816]      - |     82960  uc022brr.1
+#   -------
+#   seqinfo: 93 sequences (1 circular) from hg19 genome
+</code>
+		</pre>
+	</section>
+
+	<section class="slide tighter">
+		<p>Similar extractor functions exist for <code>genes()</code>, <code>exons()</code>, <code>cds()</code>.</p>
+		<pre class="language-r medium">
+<code>genes <- genes(txdb); genes
+# GRanges object with 23056 ranges and 1 metadata column:
+#         seqnames                 ranges strand |     gene_id
+#            &lt;Rle&gt;              &lt;IRanges&gt;  &lt;Rle&gt; | &lt;character&gt;
+#       1    chr19 [ 58858172,  58874214]      - |           1
+#      10     chr8 [ 18248755,  18258723]      + |          10
+#     100    chr20 [ 43248163,  43280376]      - |         100
+#    1000    chr18 [ 25530930,  25757445]      - |        1000
+#   10000     chr1 [243651535, 244006886]      - |       10000
+#     ...      ...                    ...    ... .         ...
+#    9991     chr9 [114979995, 115095944]      - |        9991
+#    9992    chr21 [ 35736323,  35743440]      + |        9992
+#    9993    chr22 [ 19023795,  19109967]      - |        9993
+#    9994     chr6 [ 90539619,  90584155]      + |        9994
+#    9997    chr22 [ 50961997,  50964905]      - |        9997
+#   -------
+#   seqinfo: 93 sequences (1 circular) from hg19 genome</code>
+		</pre>
+	</section>
+
+	<section class="slide">
+		<p>Can subset the GRanges object via the row id (gene_id).</p>
+		<pre class="language-r">
+<code>genes[c("5594", "5595")]
+# GRanges object with 2 ranges and 1 metadata column:
+#        seqnames               ranges strand |     gene_id
+#           &lt;Rle&gt;            &lt;IRanges&gt;  &lt;Rle&gt; | &lt;character&gt;
+#   5594    chr22 [22113947, 22221970]      - |        5594
+#   5595    chr16 [30125426, 30134630]      - |        5595
+#   -------
+#   seqinfo: 93 sequences (1 circular) from hg19 genome</code>
+		</pre>
+	</section>
+
+	<section id="transcriptby" class="slide">
+		<h2>Group transcripts</h2>
+		<p>How to find transcripts of a gene? How to know the extrons, UTRs of a transcripts?</p>
+		<ul>
+			<li><code>transcriptsBy(txdb, by = "gene")</code></li>
+			<li><code>exonsBy(txdb, by = "tx", use.names = TRUE)</code></li>
+			<li>There are more grouper functions such as intronsByTranscript(), fiveUTRsByTranscript(), and threeUTRsByTranscript(). Refer to help page for their usage.</li>
+		</ul>
+	</section>
+
+	<section class="slide">
+		<pre class="language-r medium">
+<code>txby <- transcriptsBy(txdb, by="gene"); txby
+# <mark>GRangesList</mark> object of length 23459:
+# <mark>$1</mark>
+# GRanges object with 2 ranges and 2 metadata columns:
+#       seqnames               ranges strand |     tx_id     tx_name
+#          &lt;Rle&gt;            &lt;IRanges&gt;  &lt;Rle&gt; | &lt;integer&gt; &lt;character&gt;
+#   [1]    chr19 [58858172, 58864865]      - |     70455  uc002qsd.4
+#   [2]    chr19 [58859832, 58874214]      - |     70456  uc002qsf.2
+#
+# <mark>$10</mark>
+# GRanges object with 1 range and 2 metadata columns:
+#       seqnames               ranges strand | tx_id    tx_name
+#   [1]     chr8 [18248755, 18258723]      + | 31944 uc003wyw.1
+#
+# ...
+# <23456 more elements>
+# -------
+# seqinfo: 93 sequences (1 circular) from hg19 genome</code>
+		</pre>
+	</section>
+
+	<section class="slide">
+		<p><code>transcriptsBy()</code> returns a <strong>GRangesList</strong>, whose keys are gene IDs (Entrez). Select MAPK1's transcripts and verify with what we found in OrgDb.</p>
+		<pre class="language-r medium">
+<code>txby[["5594"]]
+# GRanges object with 3 ranges and 2 metadata columns:
+#       seqnames               ranges strand |     tx_id     tx_name
+#          &lt;Rle&gt;            &lt;IRanges&gt;  &lt;Rle&gt; | &lt;integer&gt; &lt;character&gt;
+#   [1]    chr22 [22113947, 22221970]      - |     74608  uc002zvn.3
+#   [2]    chr22 [22123319, 22221970]      - |     74609  uc002zvo.3
+#   [3]    chr22 [22123484, 22221970]      - |     74610  uc010gtk.1
+#   -------
+#   seqinfo: 93 sequences (1 circular) from hg19 genome</code>
+		</pre>
+		<p>Why we know the gene IDs are Entrez Gene IDs? (try printing txdb itself)</p>
+	</section>
+
+	<section class="slide tighter">
+		<pre class="language-r medium">
+<code>exby <- exonsBy(txdb, by = "tx", use.names = TRUE); exby
+# GRangesList object of length 82960:
+# $uc001aaa.3
+# GRanges object with 3 ranges and 3 metadata columns:
+#       seqnames         ranges strand |   exon_id   exon_name exon_rank
+#          &lt;Rle&gt;      &lt;IRanges&gt;  &lt;Rle&gt; | &lt;integer&gt; &lt;character&gt; &lt;integer&gt;
+#   [1]     chr1 [11874, 12227]      + |         1        &lt;NA&gt;         1
+#   [2]     chr1 [12613, 12721]      + |         3        &lt;NA&gt;         2
+#   [3]     chr1 [13221, 14409]      + |         5        &lt;NA&gt;         3
+#
+# $uc010nxq.1
+# GRanges object with 3 ranges and 3 metadata columns:
+#       seqnames         ranges strand | exon_id exon_name exon_rank
+#   [1]     chr1 [11874, 12227]      + |       1      &lt;NA&gt;         1
+#   [2]     chr1 [12595, 12721]      + |       2      &lt;NA&gt;         2
+#   [3]     chr1 [13403, 14409]      + |       6      &lt;NA&gt;         3
+#
+# ...
+# <82957 more elements>
+# -------
+# seqinfo: 93 sequences (1 circular) from hg19 genome</code>
+		</pre>
+	</section>
+
+	<section class="slide tighter">
+		<p><code>exonsBy()</code> returns a <strong>GRangesList</strong>, whose keys are transcript IDs (UCSC KnownGene). Pick one MAPK1 transcript and verify with <a href="#ph525-annotation-vis-mapk1">modPlot()</a>'s result.</p>
+		<pre class="language-r medium">
+<code>exby[["uc002zvn.3"]]
+# GRangesList object of length 1:
+# $uc002zvn.3
+# GRanges object with 9 ranges and 3 metadata columns:
+#       seqnames               ranges strand |   exon_id   exon_name exon_rank
+#          &lt;Rle&gt;            &lt;IRanges&gt;  &lt;Rle&gt; | &lt;integer&gt; &lt;character&gt; &lt;integer&gt;
+#   [1]    chr22 [22221612, 22221970]      - |    264662        &lt;NA&gt;         1
+#   [2]    chr22 [22161953, 22162135]      - |    264661        &lt;NA&gt;         2
+#   [3]    chr22 [22160139, 22160328]      - |    264660        &lt;NA&gt;         3
+#   ...
+#   [7]    chr22 [22127162, 22127271]      - |    264656        &lt;NA&gt;         7
+#   [8]    chr22 [22123484, 22123609]      - |    264655        &lt;NA&gt;         8
+#   [9]    chr22 [22113947, 22118529]      - |    264653        &lt;NA&gt;         9
+#
+# -------
+# seqinfo: 93 sequences (1 circular) from hg19 genome</code>
+		</pre>
+	</section>
+
+	<section class="slide" id="seqinfo">
+		<h2>Extract chromosome information</h2>
+		<p>Extract the chromosome information by <code>seqinfo()</code>, returning a <strong>Seqinfo</strong> object. Works on all GRanges objects.</p>
+	<pre class="language-r medium">
+<code>si <- seqinfo(txdb); si
+# Seqinfo object with 93 sequences (1 circular) from hg19 genome:
+#   <mark>seqnames       seqlengths isCircular genome</mark>
+#   chr1            249250621       &lt;NA&gt;   hg19
+#   chr2            243199373       &lt;NA&gt;   hg19
+#   chr3            198022430       &lt;NA&gt;   hg19
+#   ...                   ...        ...    ...
+#   chrUn_gl000247      36422       &lt;NA&gt;   hg19
+#   chrUn_gl000248      39786       &lt;NA&gt;   hg19
+#   chrUn_gl000249      38502       &lt;NA&gt;   hg19
+</code>
+	</pre>
+	</section>
+
+	<section class="slide">
+		<h2>Seqinfo object operations</h2>
+		<pre class="language-r">
+<code>seqnames(si)  # use its column name as function
+# [1] "chr1" "chr2" "chr3" "chr4" "chr5" ...
+seqlengths(si)
+#      chr1      chr2      chr3      chr4      chr5 ...
+# 249250621 243199373 198022430 191154276 180915260 ...
+isCircular(si)
+# chr1 chr2 chr3 chr4 chr5 ... chrM ...
+#   NA   NA   NA   NA   NA ... TRUE ...
+		</code></pre>
+	</section>
+
+	<section class="slide tighter">
+		<h2>Change chromsome naming styles</h2>
+		<p>For example, Ensembl uses NCBI style naming (1, 2, ...); UCSC prefix all chromosome names with "chr".</p>
+
+		<pre class="language-r">
+<code>seqlevels(txdb)
+# [1] "chr1" "chr2" "chr3" "chr4" "chr5" "chr6" ...
+seqlevelsStyle(txdb)
+# [1] "UCSC"
+seqlevelsStyle(txdb) <- "NCBI"  # change the naming style
+seqlevels(txdb)
+# [1] "1" "2" "3" "4" "5" "6" ...
+</code>
+		</pre>
+	</section>
+
+	<section id="txDb-recap" class="slide">
+		<h2>txDb recap</h2>
+		<ul>
+			<li>Inherits <strong>methods of OrgDb</strong> (e.g. <code>columns()</code> and <code>select()</code>)</li>
+			<li>Specialized functions that return <strong>regions of genomic coordinates</strong> as a GRanges object (e.g. <code>transcripts()</code> and <code>genes()</code>)</li>
+			<li>Specialized functions that return <strong>groups of genomic regions</strong> as a GRangesList object (e.g. <code>transcriptsBy()</code> and <code>exonsBy()</code>)</li>
+			<li><strong>Chromosome information</strong> is stored as a Seqinfo object via <code>seqinfo()</code></li>
+		</ul>
+	</section>
+
+
+	<!-- Section: OrganismDb -->
+	<section class="slide">
+		<h2 class="shout">OrganismDb</h2>
+	</section>
+
+	<section class="slide">
+		<h2>OrganismDb objects</h2>
+		<ul>
+			<li>We learnt OrgDb and TxDb</li>
+			<li>What if we can use gene symbols to find their Entrez IDs in OrgDb, and query the gene IDs in TxDb to find their transcript forms?</li>
+			<li>OrganismDb does the work</li>
+			<li>For human the bundled OrganismDb object is <code>Homo.sapiens</code></li>
+		</ul>
+		<pre class="language-r">
+<code>library(Homo.sapiens)
+human <- Homo.sapiens</code>
+		</pre>
+	</section>
+
+	<section class="slide tighter">
+		<pre class="language-r">
+	<code>> human
+OrganismDb Object:
+# Includes GODb Object:  GO.db
+# With data about:  Gene Ontology
+# Includes OrgDb Object:  <mark>org.Hs.eg.db</mark>
+# Gene data about:  Homo sapiens
+# Taxonomy Id:  9606
+# Includes TxDb Object:  <mark>TxDb.Hsapiens.UCSC.hg19.knownGene</mark>
+# Transcriptome data about:  Homo sapiens
+# Based on genome:  hg19
+# The <mark>OrgDb gene id ENTREZID</mark> is mapped to
+# the <mark>TxDb gene id GENEID</mark> .</code>
+		</pre>
+	</section>
+
+	<section class="slide">
+		<pre class="language-r">
+<code>select(
+    human,
+    keys = c("MAPK1"), keytype = "SYMBOL",
+    columns = c("TXNAME", "TXCHROM", "TXSTRAND")
+)
+#   SYMBOL     TXNAME TXCHROM TXSTRAND
+# 1  MAPK1 uc002zvn.3   chr22        -
+# 2  MAPK1 uc002zvo.3   chr22        -
+# 3  MAPK1 uc010gtk.1   chr22        -</code>
+		</pre>
+	</section>
+
+	<section id="human-transcripts" class="slide tighter">
+		<pre class="language-r medium">
+<code>transcripts(human, columns=c("TXNAME", "SYMBOL"))
+# 'select()' returned 1:1 mapping between keys and columns
+# GRanges object with 82960 ranges and 2 metadata columns:
+#                 seqnames           ranges strand |          TXNAME          SYMBOL
+#                    &lt;Rle&gt;        &lt;IRanges&gt;  &lt;Rle&gt; | &lt;CharacterList&gt; &lt;CharacterList&gt;
+#       [1]           chr1 [ 11874,  14409]      + |      uc001aaa.3         DDX11L1
+#       [2]           chr1 [ 11874,  14409]      + |      uc010nxq.1         DDX11L1
+#       [3]           chr1 [ 11874,  14409]      + |      uc010nxr.1         DDX11L1
+#       [4]           chr1 [ 69091,  70008]      + |      uc001aal.1           OR4F5
+#       [5]           chr1 [321084, 321115]      + |      uc001aaq.2              NA
+#       ...            ...              ...    ... .             ...             ...
+#   [82956] chrUn_gl000237   [    1,  2686]      - |      uc011mgu.1              NA
+#   [82957] chrUn_gl000241   [20433, 36875]      - |      uc011mgv.2              NA
+#   [82958] chrUn_gl000243   [11501, 11530]      + |      uc011mgw.1              NA
+#   [82959] chrUn_gl000243   [13608, 13637]      + |      uc022brq.1              NA
+#   [82960] chrUn_gl000247   [ 5787,  5816]      - |      uc022brr.1              NA
+#   -------
+#   seqinfo: 93 sequences (1 circular) from hg19 genome</code>
+		</pre>
+		<p class="next">But how can we get the contents columns like TXNAME and SYMBOL?!</p>
+	</section>
+
+
+	<!-- Section: GenomicRanges -->
+	<section class="slide">
+		<h2 class="shout">GenomicRanges</h2>
+	</section>
+
+	<section class="slide">
+		<h2>GenomicRanges for genomic ranges</h2>
+		<ul>
+			<li>Fundamental package to store and operate on genomic ranges</li>
+			<li>Three main classes: <strong>IRanges</strong>, <strong>GRanges</strong>, and <strong>GRangesList</strong></li>
+			<li>Coordinate system:</li>
+			<ul>
+				<li>1-based: First base in the chromosome has coordinate 1</li>
+				<li>Closed: Start and end coordinates are include in the range)</li>
+				<li>Left-most: Start is always to the left of end, regardless of strand</li>
+			</ul>
+			<li>Can cover all functionalities. Refer to references</li>
+		</ul>
+		<div class="citation">
+			<p>Ref: <a href="http://bioconductor.org/help/course-materials/2015/LearnBioconductorFeb2015/A01.2_IntroductionToBioconductor.html" target="_blank">Introduction to Bioconductor</a></p>
+		</div>
+	</section>
+
+	<section id="granges-overview" class="slide tighter">
+		<h2>GRanges and GRangesList overview</h2>
+		<div class="citation">
+			<img class="fill w" src="pics/GRanges_cheatsheet.png" alt="">
+			<p>Ref: <a href="http://bioconductor.org/help/course-materials/2015/Uruguay2015/V3-GenomicRanges.html">Genomic Ranges For Genome-Scale Data And Annotation</a>, Martin Morgan, 2015.10</p>
+		</div>
+	</section>
+
+	<section id="grangeslist-overview" class="slide tighter">
+		<div class="citation">
+			<img class="fill w" src="pics/GRangesList_cheatsheet.png" alt="">
+			<p>Ref: <a href="http://bioconductor.org/help/course-materials/2015/Uruguay2015/V3-GenomicRanges.html">Genomic Ranges For Genome-Scale Data And Annotation</a>, Martin Morgan, 2015.10</p>
+		</div>
+	</section>
+
+	<section id="granges-alg" class="slide tighter">
+		<h2>GRanges Algebra</h2>
+		<ul>
+			<li><strong>Intra-range</strong> methods (see <code>?"intra-range-methods"</code>)</li>
+			<ul>
+				<li>Independent of other ranges in the same object; strand-aware</li>
+				<li>shift(), narrow(), flank(), promoters(), resize(), restrict(), trim()</li>
+			</ul>
+			<li><strong>Inter-range</strong> methods (see <code>?"inter-range-methods"</code>)</li>
+			<ul>
+				<li>Dependent of other ranges in the same object</li>
+				<li>range(), reduce(), gaps(), disjoin(), coverage()</li>
+			</ul>
+			<li><strong>Between-range</strong> methods</li>
+			<ul>
+				<li>Functions of two (or more) range objects</li>
+				<li>findOverlaps(), countOverlaps(), …, %over%, %within%, %outside%; union(), intersect(), setdiff(), punion(), pintersect(), psetdiff()</li>
+			</ul>
+		</ul>
+		<div class="citation">
+			<p>Ref: <a href="http://bioconductor.org/help/course-materials/2015/Uruguay2015/V3-GenomicRanges.html">Genomic Ranges For Genome-Scale Data And Annotation</a>, Martin Morgan, 2015.10</p>
+		</div>
+		<style>
+			#granges-alg > ul {
+				margin-bottom: 0em;
+			}
+		</style>
+	</section>
+
+	<section class="slide tighter">
+		<img class="cover w" src="pics/GRanges_algebra.png" alt="">
+		<div class="citation" style="bottom: 0.5em; right: 1em; position: absolute;">
+			<p>Ref: <a href="http://bioconductor.org/help/course-materials/2015/Uruguay2015/V3-GenomicRanges.html">Genomic Ranges For Genome-Scale Data And Annotation</a>, Martin Morgan, 2015.10</p>
+		</div>
+	</section>
+
+	<section class="slide tighter">
+		<h2>Back to the OrganismDb transcripts</h2>
+		<pre class="language-r medium">
+<code>txs <- transcripts(human, columns=c("TXNAME", "SYMBOL"))
+mcols(txs)  # act as data.frame
+# DataFrame with 82960 rows and 2 columns
+#                TXNAME          SYMBOL
+#       &lt;CharacterList&gt; &lt;CharacterList&gt;
+# 1          uc001aaa.3         DDX11L1
+# 2          uc010nxq.1         DDX11L1
+# 3          uc010nxr.1         DDX11L1
+# 4          uc001aal.1           OR4F5
+# 5          uc001aaq.2              NA
+# ...               ...             ...
+# 82956      uc011mgu.1              NA
+# 82957      uc011mgv.2              NA
+# 82958      uc011mgw.1              NA
+# 82959      uc022brq.1              NA
+# 82960      uc022brr.1              NA
+mcols(txs)$SYMBOL  # take SYMBOL column out</code>
+		</pre>
+	</section>
+
+	<section class="slide tighter">
+	<h2>GRanges from scratch</h2>
+<pre class="language-r medium">
+<code>gr1 <- GRanges(
+    seqnames = "chr2", ranges = IRanges(3, 6), strand = "+",
+    score = 5L, GC = 0.45
+); gr1
+# GRanges object with 1 range and 2 metadata columns:
+#       seqnames    ranges strand |     score        GC
+#          &lt;Rle&gt; &lt;IRanges&gt;  &lt;Rle&gt; | &lt;integer&gt; &lt;numeric&gt;
+#   [1]     chr2    [3, 6]      + |         5      0.45
+#   -------
+#   seqinfo: 1 sequence from an unspecified genome; no seqlengths
+
+gr2 <- GRanges(
+	seqnames = c("chr1", "chr1"),
+	ranges = IRanges(c(7, 13), width = 3), strand = c("+", "-"),
+    score = 3:4, GC = c(0.3, 0.5)
+)</code>
+</pre>
+	</section>
+
+	<section class="slide tighter">
+	<h2>GRangesList from scratch</h2>
+	<pre class="language-r medium">
+<code>grl <- GRangesList("txA" = gr1, "txB" = gr2); grl
+# GRangesList object of length 2:
+# $txA
+# GRanges object with 1 range and 2 metadata columns:
+#       seqnames    ranges strand |     score        GC
+#          &lt;Rle&gt; &lt;IRanges&gt;  &lt;Rle&gt; | &lt;integer&gt; &lt;numeric&gt;
+#   [1]     chr2    [3, 6]      + |         5      0.45
+#
+# $txB
+# GRanges object with 2 ranges and 2 metadata columns:
+#       seqnames   ranges strand | score  GC
+#   [1]     chr1 [ 7,  9]      + |     3 0.3
+#   [2]     chr1 [13, 15]      - |     4 0.5
+#
+# -------
+# seqinfo: 2 sequences from an unspecified genome; no seqlengths</code>
+	</pre>
+	</section>
+
+
+	<!-- Section: BSgenome -->
+	<section class="slide">
+		<h2 class="shout">BSgenome</h2>
+	</section>
+
+	<section class="slide tighter">
+		<h2>BSgenome objects</h2>
+		<ul>
+			<li>Store sequence data</li>
+			<li>For human ref hg19, Bioconductor ships BSgenome.Hsapiens.UCSC.hg19</li>
+			<li>Shown as Hsapiens</li>
+		</ul>
+		<pre class="language-r medium"><code>library(BSgenome.Hsapiens.UCSC.hg19)
+Hsapiens
+# Human genome:
+# # organism: Homo sapiens (Human)
+# # provider: UCSC
+# # provider version: hg19
+# # release date: Feb. 2009
+# # release name: Genome Reference Consortium GRCh37
+# # 93 sequences:
+# ...</code></pre>
+	</section>
+
+	<section class="slide">
+		<pre class="language-r">
+<code>chrom_names <- seqnames(Hsapiens)
+head(chrom_names)
+# [1] "chr1" "chr2" "chr3" "chr4" "chr5" "chr6"
+getSeq(Hsapiens, chrom_names[1:2])
+#   A DNAStringSet instance of length 2
+#         width seq
+# [1] 249250621 NNNNNNNNNNN...NNNNNNNNNNN
+# [2] 243199373 NNNNNNNNNNN...NNNNNNNNNNN
+</code>
+		</pre>
+	</section>
+
+	<section class="slide tighter">
+		<p><code>getSeq()</code> accepts GRanges as well.</p>
+		<pre class="language-r">
+<code>getSeq(Hsapiens, txby[["5594"]])
+#   A DNAStringSet instance of length 3
+#      width seq
+# [1] 108024 GCCCCTCCCTCCGCCCGCCC...CAGTAAATAGCAAGTCTTTTTAA
+# [2]  98652 GCCCCTCCCTCCGCCCGCCC...AATTATTTAGAAAGTTACATATA
+# [3]  98487 GCCCCTCCCTCCGCCCGCCC...GATACAGATCTTAAATTTGTCAG
+# Join all exons (UTRs included) of uc002zvn.3
+unlist(getSeq(Hsapiens, exby[["uc002zvn.3"]]))
+#   5915-letter "DNAString" instance
+# seq: GCCCCTCCCTCCGCCC...CAAGTCTTTTTAA</code>
+		</pre>
+	</section>
+
+	<section class="slide">
+		<h2>Summary</h2>
+		<table class="striped">
+		<thead>
+			<tr>
+				<th>Object Type</th>
+				<th>Notable Methods</th>
+			</tr>
+		</thead>
+		<tbody>
+		<tr>
+			<th role="row">OrgDb</th>
+			<td>
+				columns(), select(), mapIds(), ...
+			</td>
+		</tr>
+		<tr>
+			<th role="row">TxDb</th>
+			<td>
+				transcripts(), genes(), transcriptsBy(), exonsBy(), ...<br>
+				and methods by GRanges and GRangesList
+			</td>
+		</tr>
+		<tr>
+			<th role="row">GRanges[List]</th>
+			<td>start(), end(), strand(), mcols(), seqinfo(), ...</td>
+		</tr>
+		<tr>
+			<th role="row">Seqinfo</th>
+			<td>seqnames(), seqlengths(), isCircular(), seqlevels(), ...</td>
+		</tr>
+		<tr>
+			<th role="row">OrganismDb</th>
+			<td>Methods by OrgDb and TxDb</td>
+		</tr>
+		<tr>
+			<th role="row">BSgenome</th>
+			<td>seqnames(), getSeq()</td>
+		</tr>
+		</tbody>
+		</table>
+	</section>
+
+	<section id="things-without-time-to-mention" class="slide">
+		<h2>Topics I don't have time to say today</h2>
+		<ul class="double">
+			<li>AnnotationHub</li>
+			<li>TxDb's isActiveSeq()</li>
+			<li>biomaRt</li>
+			<li>GenomicRanges details and Rle</li>
+			<li>Lift over (ex. hg38 to hg19)</li>
+		</ul>
+		<h2>What's next?</h2>
+	</section>
+
+	<section class="slide mid">
+		<h2>References</h2>
+		<img src="pics/mid.jpg" class="cover w" alt="">
+	</section>
+
+	<section class="slide">
+		<h2>Reference - Misc.</h2>
+		<ul>
+			<li><a href="https://github.com/mikelove/bioc-refcard/blob/master/README.Rmd">"Bioconductor cheat sheet"</a>, Mike Love</li>
+			<li><a href="https://www.bioconductor.org/help/course-materials/2015/EMBO/A01_RBiocForSequenceAnalysis.html">
+				"Introduction to Sequence Analysis, R, and Bioconductor"</a>, Martin Morgan</li>
+		</ul>
+	</section>
+
+	<section class="slide">
+		<h2>References - Annotation</h2>
+		<ul>
+			<li><a href="https://www.bioconductor.org/help/workflows/annotation/Annotation_Resources/">"Genomic Annotation Resources" Workflow</a>, Bioconductor
+			</li>
+			<li><a href="https://www.bioconductor.org/help/course-materials/2015/Uruguay2015/V4-Annotation.html">"Adding Annotation To Your Analysis"</a>, Martin Morgan</li>
+			<li><a href="https://www.bioconductor.org/help/course-materials/2015/BioC2015/Annotation_Resources.html">"Annotation Resources For Bioconductor"</a>, Marc Carlson</li>
+			<li><a href="http://genomicsclass.github.io/book/pages/bioc1_annoCheat.html">"Genomic annotation in Bioconductor: Cheat sheet"</a>, PH525x series</li>
+			<li><a href="http://genomicsclass.github.io/book/pages/bioc1_annoOverview.html">"Genomic annotation in Bioconductor: The general situation"</a>, PH525x series</li>
+		</ul>
+	</section>
+
+	<section class="slide">
+		<h2>References - GenomicRanges</h2>
+		<ul>
+
+
+			<li><a href="http://genomicsclass.github.io/book/pages/bioc1_igranges.html">"IRanges and GRanges"</a>, PH525x series</li>
+			<li><a href="http://genomicsclass.github.io/book/pages/bioc1_grangeOps.html">"GRanges operations related to gene model, TSS, and promoter region identification"</a>, PH525x series</li>
+			<li><a href="https://www.bioconductor.org/packages/release/bioc/vignettes/GenomicRanges/inst/doc/GenomicRangesIntroduction.pdf">"An Introduction to the GenomicRanges Package"</a>, GenomicRanges vignettes</li>
+			<li><a href="https://www.bioconductor.org/help/course-materials/2015/SeattleApr2015/B_GenomicRanges.html">"Genomic Ranges"</a>, Martin Morgan</li>
+		</ul>
+	</section>
+
+
+	<!-- Section: findOverlaps, foverlaps -->
+	<section class="slide mid no-number">
+		<h2>Adv. Topic<br>foverlaps</h2>
+		<img src="pics/mid.jpg" class="cover w" alt="">
+	</section>
+
+	<section class="slide">
+		<h2>How to find overlap of two groups of genomic regions?</h2>
+		<ul>
+			<li>Naive way by checking every pair is not efficient</li>
+			<li><code>findOverlaps(query, subject)</code> implements an efficient algorithm</li>
+			<li>By default <code>type="any"</code>. Support "within", "start", and "end" scenario</li>
+			<li>Also provide <code>%over%</code>, <code>%within%</code>, and <code>%outside%</code> operators</li>
+		</ul>
+	</section>
+
+	<section class="slide tighter twocol">
+		<div class="left">
+			<pre class="language-r medium">
+<code>(gr1 <- GRanges(
+  "chrZ",
+  IRanges(c(1,11,21,31,41),width=5),
+  strand="*"))
+# GRanges object with 5 ranges:
+#       seqnames    ranges strand
+#   [1]     chrZ  [ 1,  5]      *
+#   [2]     chrZ  [11, 15]      *
+#   [3]     chrZ  [21, 25]      *
+#   [4]     chrZ  [31, 35]      *
+#   [5]     chrZ  [41, 45]      *
+(gr2 <- GRanges(
+  "chrZ",
+  IRanges(c(19,33), c(38,35)),
+  strand="*"))
+# GRanges object with 2 ranges:
+#       seqnames    ranges strand
+#   [1]     chrZ  [19, 38]      *
+#   [2]     chrZ  [33, 35]      *
+</code>
+			</pre>
+		</div>
+		<div class="right">
+			<p>Ex. The 3rd range of gr1 [21, 25] overlaps with 1st range of gr2 [19, 38]</p>
+			<pre class="language-r medium">
+<code><mark>findOverlaps(gr1, gr2)</mark>
+# Hits object with 3 hits:
+#       queryHits subjectHits
+#       <integer>   <integer>
+#   [1]         3           1
+#   [2]         4           1
+#   [3]         4           2
+#   -------
+#   queryLength: 5 / subjectLength: 2
+
+<mark>gr1 %over% gr2</mark>
+# [1] FALSE FALSE  TRUE  TRUE FALSE</code>
+			</pre>
+		</div>
+	</section>
+
+	<section class="slide">
+		<h2>data.table::foverlaps()</h2>
+		<ul>
+			<li>data.table is an efficient implementation of data.frame</li>
+			<li>It provides more functionalities (e.g. subsetting, transforming, and indexing)</li>
+			<li><code>foverlaps()</code> is another function to handle region overlapping</li>
+			<li>The algorithm in use known to be <a href="https://github.com/Rdatatable/data.table/wiki/talks/EARL2014_OverlapRangeJoin_Arun.pdf" target="_blank">very efficient</a></li>
+			<li>Re-do the previous example in data.table</li>
+		</ul>
+	</section>
+
+	<section class="slide tighter">
+<pre class="language-r"><code>library(data.table)
+dt_gr1 <- as.data.table(gr1)  # convert to data.table
+dt_gr2 <- as.data.table(gr2)
+# foverlap requires columns (keys) to be indexed
+gr_key <- c("seqnames","start","end")
+setkeyv(dt_gr1, gr_key); setkeyv(dt_gr2, gr_key)
+<mark>foverlaps(dt_gr1, dt_gr2, which = TRUE, nomatch = 0)</mark>
+#    xid yid
+# 1:   3   1
+# 2:   4   1
+# 3:   4   2
+</code></pre>
+
+	</section>
+
+
+	<!-- Using BioMart -->
+	<!--
+	Refseq mRNA to Ensembl transcript ID
+	https://www.biostars.org/p/106470/#106534
+	https://www.biostars.org/p/102462/#102480
+	-->
+
+	<!-- Lift Over example: hg38 to hg19 -->
+	<!--
+	http://genomicsclass.github.io/book/pages/bioc1_liftOver.html
+	-->
+
+	<!-- End Slide -->
+	<section id='end' class='slide no-number'>
+		<h2>?</h2>
+		<img src="pics/end.jpg" class="cover w" alt="">
+		<style>
+			#end h2 {
+				position: absolute;
+				left: 52%;
+				top: 42%;
+				color: rgb(228, 74, 33);
+				text-align: right;
+				text-shadow: none;
+				font-size: 120px;
+			}
+		</style>
+	</section>
+
+	<!-- Section: About me and my future school WUSTL -->
+	<section id="about-me" class="slide no-number twocol l60">
+		<div class="left">
+			<h2>About Me</h2>
+			<ul>
+				<li>亮亮 or Liang<sup>2</sup></li>
+				<li>Master student in Bioinformatics, National Taiwan University (NTU BEBI)</li>
+				<li>Former intern at Microsoft Research Asia (MSRA) and Pinkoi</li>
+				<li>A PhD student in <a href="http://dbbs.wustl.edu/divprograms/compbio/Pages/default.aspx" target="_blank">WUSTL (WashU)</a> by Fall</li>
+				<li>Happy to talk about Bioinfo, anime, and <a href="https://www.ptt.cc/bbs/studyabroad/M.1462818195.A.882.html">my PhD application</a></li>
+			</ul>
+		</div>
+		<div class="right">
+			<div class="citation">
+			<img class="fill w" src="pics/me.jpg" alt="">
+			<p>(Yap, I know I haven't changed my protrait photo since <a href="https://blog.liang2.tw/2014-pyR-stat/" target="_blank">2014</a> and actually the photo I put in <a href="https://blog.liang2.tw/ggplot2-tutorial/201307_slides/#/1">2013</a> is newer)</p>
+			</div>
+		</div>
+	</section>
+
+	<!-- END OF SLIDE CONTENT -->
+	<p class="badge">
+		<a href="https://github.com/ccwang002/2016Talk-Genomics-in-R" target="_blank">Sources on GitHub</a>
+	</p>
+	<!--
+	To hide progress bar from entire presentation
+	just remove “progress” element.
+	-->
+	<div class="progress"></div>
+
+	<!-- Library -->
+	<script src="lib/shower/shower.min.js"></script>
+	<script src="lib/highlight/highlight.pack.js" type="text/javascript" charset="utf-8"></script>
+	<script>
+		hljs.initHighlightingOnLoad();
+	</script>
+	<!-- Mathjax -->
+	<!-- online Mathjax CDN -->
+	<!--<script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>-->
+</body>
+</html>
