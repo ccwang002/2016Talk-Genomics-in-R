@@ -29,6 +29,18 @@ nm_info_ens84 <- getBM(
 )
 nm_info_ens84
 
+getBM(
+    attributes = c(
+        "refseq_mrna", "ensembl_transcript_id",
+        "chromosome_name",
+        "transcript_start", "transcript_end", "strand",
+        "hgnc_symbol", "entrezgene", "ensembl_gene_id"
+    ),
+    filters = "hgnc_symbol",
+    values = c("MAPK1"),
+    mart = ensembl
+)
+
 # Using the AnnotationDb-style select() function
 select(
     ensembl,
@@ -36,10 +48,51 @@ select(
     keytype = "refseq_mrna",
     columns =  c(
         "refseq_mrna", "ensembl_transcript_id",
-        "chromosome_name", "transcript_start", "transcript_end", "strand",
+        "chromosome_name",
+        "transcript_start", "transcript_end", "strand",
         "hgnc_symbol", "entrezgene", "ensembl_gene_id"
     )
 )
+
+select(
+    ensembl,
+    keys = c("MAPK1"),
+    keytype = "hgnc_symbol",
+    columns =  c(
+        "refseq_mrna", "ensembl_transcript_id",
+        "hgnc_symbol", "entrezgene",
+        "chromosome_name",
+        "transcript_start", "transcript_end", "strand"
+    )
+)
+
+grep("^refseq", keytypes(ensembl), value = TRUE)
+grep("^ensembl", keytypes(ensembl), value = TRUE)
+grep("hsapiens_paralog_", columns(ensembl), value=TRUE)
+# Get paralog of MAPK1
+select(
+    ensembl,
+    keys = c("ENSG00000100030"),
+    keytype = "ensembl_gene_id",
+    columns = c(
+        "hsapiens_paralog_associated_gene_name",
+        "hsapiens_paralog_orthology_type",
+        "hsapiens_paralog_ensembl_peptide"
+    )
+)
+# Get homolog of MAPK1 in mouse
+select(
+    ensembl,
+    keys = c("ENSG00000100030"),
+    keytype = "ensembl_gene_id",
+    columns = c(
+        "mmusculus_homolog_associated_gene_name",
+        "mmusculus_homolog_orthology_type",
+        "mmusculus_homolog_ensembl_peptide"
+    )
+)
+
+
 
 
 # Retreive sequence
